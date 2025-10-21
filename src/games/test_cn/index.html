@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Game</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding-top: 50px; }
+        h1 { color: #333; }
+        p { color: #666; }
+        #score-button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 20px 2px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+        }
+        #score-button:hover { background-color: #45a049; }
+    </style>
+
+    <!-- 
+      IMPORTANT: This script tag includes the necessary library from the host platform.
+      The path '/js/library.js' assumes the host application serves this file from its root.
+      Faculty should ensure this script is included in their game.
+    -->
+    <script src="/js/library.js"></script>
+
+</head>
+<body>
+
+    <h1>Sample LTI Game</h1>
+    <p>This is a placeholder for a real game created by faculty.</p>
+    <p>Click the button below to simulate finishing the game and sending a score of 85% to the LMS.</p>
+
+    <button id="score-button">Finish Game & Submit Score</button>
+
+    <script>
+        document.getElementById('score-button').addEventListener('click', function() {
+            // This is the score to be sent. LTI standards require a float between 0.0 and 1.0.
+            var finalScore = 0.85;
+
+            // This function is defined in the included 'library.js'.
+            // It sends a structured message to the parent window (the LTI host page).
+            CanvasGame.notifyParent('game_complete', { score: finalScore });
+
+            // Optional: Let the user know the score was sent.
+            alert("Your score of " + (finalScore * 100) + "% has been sent!");
+            document.getElementById('score-button').disabled = true;
+            document.getElementById('score-button').innerText = "Score Submitted";
+        });
+    </script>
+
+</body>
+</html>

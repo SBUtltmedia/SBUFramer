@@ -1,0 +1,8 @@
+<If "env('ENVIRONMENT') == 'local'">
+    # Set env vars only if LOCAL=true
+    SetEnv cn test_cn
+    SetEnv nickname test_nickname
+    SetEnv givenName test_givenName
+    SetEnv sn test_sn
+    SetEnv mail test_mail@stonybrook.edu
+</If>
