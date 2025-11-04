@@ -50,7 +50,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['game_file'])) {
                 $game_path_for_player = 'games/' . $user_cn . '/' . $original_filename;
                 $full_game_url = "https://goodluck.ddev.site/index.php?game=" . $game_path_for_player;
 
-                $upload_message = "<strong>Success!</strong> Your game's path for the LTI tool is: <a href=\"" . htmlspecialchars($full_game_url) . "\" target=\"_blank\">Click Here</a>";
+                $escaped_path = htmlspecialchars($game_path_for_player, ENT_QUOTES);
+                $upload_message = "<strong>Success!</strong> Your game's path for the LTI tool is: <code>" . $escaped_path . "</code> " .
+                                  "<button type='button' onclick='copyTextToClipboard(\"" . $escaped_path . "\"); this.innerText=\"Copied!\";' style='margin-left: 8px; padding: 4px 8px; cursor: pointer;'>&#x2398;</button>" .
+                                  "<br>You can test the game at: <a href=\"" . htmlspecialchars($full_game_url) . "\" target=\"_blank\">" . htmlspecialchars($full_game_url) . "</a>";
                 $upload_type = 'success';
             } else {
                 $upload_message = "Sorry, there was an error uploading your file.";
