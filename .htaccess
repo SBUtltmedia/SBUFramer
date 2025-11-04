@@ -6,3 +6,10 @@
     SetEnv sn test_sn
     SetEnv mail test_mail@stonybrook.edu
 </If>
+<Else>
+AuthType shibboleth
+ShibRequestSetting requireSession true 
+#require valid-user
+#ShibRequestSetting requireSession false
+require shibboleth
+</Else>
