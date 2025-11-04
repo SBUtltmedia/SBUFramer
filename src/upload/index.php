@@ -1,16 +1,23 @@
 <?php
 
+session_start();
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 $message = '';
-$game_url = '';
+$message_type = 'error';
+
+// Check for and display a flash message from the session
+if (isset($_SESSION['flash_message'])) {
+    $message = $_SESSION['flash_message']['text'];
+    $message_type = $_SESSION['flash_message']['type'];
+    unset($_SESSION['flash_message']); // Clear it after displaying
+}
 
 // Step 1: Check for Shibboleth authentication
 if (!isset($_SERVER['cn'])) {
-    // If not authenticated, display an error and stop.
-    // In a real environment, .htaccess would likely handle the redirect to the Shibboleth login page.
     header("HTTP/1.1 403 Forbidden");
     echo "Access Denied. You must be authenticated via Shibboleth to upload a game.";
     exit;
@@ -20,67 +27,259 @@ $user_cn = $_SERVER['cn'];
 
 // Step 2: Handle the file upload
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['game_file'])) {
-    $upload_dir = __DIR__ . '/../games/' . $user_cn . '/'; // Go up one level and then into 'games'
-    $upload_file = $upload_dir . 'index.html'; // We always name it index.html for consistency
+    $upload_message = '';
+    $upload_type = 'error';
 
-    // Check if the uploaded file is an HTML file
-    $file_type = mime_content_type($_FILES['game_file']['tmp_name']);
-    if ($file_type !== 'text/html') {
-        $message = "Error: Only .html files are allowed.";
+    // Sanitize the original filename for security
+    $original_filename = basename($_FILES['game_file']['name']);
+    if (!preg_match('/^[a-zA-Z0-9_\-]+\.html$/', $original_filename)) {
+        $upload_message = "Error: Invalid filename. Please use only letters, numbers, underscores, and hyphens. The file must end with .html.";
     } else {
-        // Create the user-specific directory if it doesn't exist
-        if (!is_dir($upload_dir)) {
-            mkdir($upload_dir, 0755, true);
-        }
+        $upload_dir = __DIR__ . '/../games/' . $user_cn . '/';
+        $upload_file = $upload_dir . $original_filename;
 
-        // Move the uploaded file to the destination
-        if (move_uploaded_file($_FILES['game_file']['tmp_name'], $upload_file)) {
-            // The URL path needed by the main index.php, relative to the 'src' directory
-            $game_url_for_player = 'games/' . $user_cn . '/';
-            $message = "File uploaded successfully! Your game's path for the LTI tool is: <b>" . htmlspecialchars($game_url_for_player) . "</b>";
+        $file_type = mime_content_type($_FILES['game_file']['tmp_name']);
+        if ($file_type !== 'text/html') {
+            $upload_message = "Error: Only .html files are allowed.";
         } else {
-            $message = "Sorry, there was an error uploading your file.";
+            if (!is_dir($upload_dir)) {
+                mkdir($upload_dir, 0755, true);
+            }
+
+            if (move_uploaded_file($_FILES['game_file']['tmp_name'], $upload_file)) {
+                $game_path_for_player = 'games/' . $user_cn . '/' . $original_filename;
+                $full_game_url = "https://goodluck.ddev.site/index.php?game=" . $game_path_for_player;
+
+                $upload_message = "<strong>Success!</strong> Your game's path for the LTI tool is: <a href=\"" . htmlspecialchars($full_game_url) . "\" target=\"_blank\">Click Here</a>";
+                $upload_type = 'success';
+            } else {
+                $upload_message = "Sorry, there was an error uploading your file.";
+            }
         }
     }
+
+    // Store message in session and redirect
+    $_SESSION['flash_message'] = ['text' => $upload_message, 'type' => $upload_type];
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit;
 }
 
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Upload Game</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faculty Game Upload</title>
+    <script>
+    function copyTextToClipboard(text) {
+        // 1. Try modern Async Clipboard API
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text)
+            .then(() => console.log('Text copied (Modern API)'))
+            .catch(err => console.error('Could not copy text (Modern API failed): ', err));
+            return;
+        }
+
+        // 2. Fallback using document.execCommand('copy')
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        
+        // Make the textarea invisible and outside the viewport
+        textArea.style.position = "fixed";
+        textArea.style.opacity = 0;
+        
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+            const successful = document.execCommand('copy');
+            console.log('Text copied (Fallback): ' + (successful ? 'successful' : 'unsuccessful'));
+        } catch (err) {
+            console.error('Fallback: Oops, unable to copy', err);
+        }
+
+        document.body.removeChild(textArea);
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: sans-serif; padding: 2em; }
-        .container { max-width: 600px; margin: 0 auto; border: 1px solid #ccc; padding: 2em; }
-        .message { margin-bottom: 1em; padding: 1em; border-radius: 4px; }
-        .success { background-color: #e7f4e7; border: 1px solid #6c9c6c; }
-        .error { background-color: #f4e7e7; border: 1px solid #9c6c6c; }
+        :root {
+            --primary-color: #4285F4;
+            --success-color: #34A853;
+            --error-color: #EA4335;
+            --background-color: #f5f5f5;
+            --text-color: #333;
+            --light-gray: #e0e0e0;
+            --white: #ffffff;
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 2em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: var(--white);
+            padding: 2.5em;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 0.5em;
+        }
+        p {
+            line-height: 1.6;
+            margin-bottom: 1.5em;
+        }
+        .message {
+            margin: 1.5em 0;
+            padding: 1em;
+            border-radius: 4px;
+            text-align: left;
+            border-left: 5px solid;
+        }
+        .message.success {
+            background-color: #e6f4ea;
+            border-color: var(--success-color);
+        }
+        .message.error {
+            background-color: #fce8e6;
+            border-color: var(--error-color);
+        }
+        code {
+            background-color: #eee;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        #drop-area {
+            border: 2px dashed var(--light-gray);
+            border-radius: 8px;
+            padding: 2em;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.3s, background-color 0.3s;
+        }
+        #drop-area.highlight {
+            border-color: var(--primary-color);
+            background-color: #e8f0fe;
+        }
+        #drop-area p {
+            margin: 0;
+            font-size: 1.1em;
+            color: #666;
+        }
+        #file-elem {
+            display: none;
+        }
+        #file-name {
+            margin-top: 1em;
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+        .submit-btn {
+            background-color: #000000 !important;
+            color: var(--white);
+            border: none;
+            padding: 0.8em 1.5em;
+            font-size: 1em;
+            font-weight: 500;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            margin-top: 1.5em;
+        }
+        .submit-btn:hover {
+            background-color: #3367D6;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .submit-btn:disabled {
+            background-color: #a0a0a0;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Faculty Game Upload</h2>
-    <p>Welcome, <?php echo htmlspecialchars($user_cn); ?>.</p>
-    <p>Upload your single-file HTML game here. The file will be saved as `index.html` in your personal game directory.</p>
+    <h1>Faculty Game Upload</h1>
+    <p>Upload your single file HTML game</p>
 
     <?php if ($message): ?>
-        <div class="message <?php echo $game_url ? 'success' : 'error'; ?>">
+        <div class="message <?php echo $message_type; ?>">
             <?php echo $message; ?>
         </div>
     <?php endif; ?>
 
-    <form action="" method="post" enctype="multipart/form-data">
-        <p>
-            <label for="game_file">Select game file (.html only):</label><br>
-            <input type="file" name="game_file" id="game_file" accept=".html">
-        </p>
-        <p>
-            <input type="submit" value="Upload Game" name="submit">
-        </p>
+    <form id="upload-form" action="" method="post" enctype="multipart/form-data">
+        <div id="drop-area">
+            <input type="file" name="game_file" id="file-elem" accept=".html" onchange="handleFiles(this.files)">
+            <label for="file-elem">
+                <p>Drag & Drop your .html file here</p>
+                <p>or <strong>click to select a file</strong></p>
+            </label>
+            <div id="file-name"></div>
+        </div>
+        <button type="submit" class="submit-btn" id="submit-button" disabled>Upload Game</button>
     </form>
-
 </div>
+
+<script>
+    let dropArea = document.getElementById('drop-area');
+    let fileElem = document.getElementById('file-elem');
+    let fileNameDisplay = document.getElementById('file-name');
+    let submitButton = document.getElementById('submit-button');
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, () => dropArea.classList.add('highlight'), false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, () => dropArea.classList.remove('highlight'), false);
+    });
+
+    dropArea.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        let dt = e.dataTransfer;
+        let files = dt.files;
+        handleFiles(files);
+    }
+
+    function handleFiles(files) {
+        if (files.length > 0) {
+            const file = files[0];
+            if (file.type === 'text/html') {
+                fileElem.files = files; // Important for form submission
+                fileNameDisplay.textContent = `Selected file: ${file.name}`;
+                submitButton.disabled = false;
+            } else {
+                fileNameDisplay.textContent = 'Error: Please select an .html file.';
+                submitButton.disabled = true;
+            }
+        }
+    }
+</script>
 
 </body>
 </html>
