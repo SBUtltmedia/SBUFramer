@@ -1,6 +1,6 @@
 name: goodLuck
 type: php
-docroot: "src"
+docroot: ""
 php_version: "8.3"
 webserver_type: apache-fpm
 xdebug_enabled: false
