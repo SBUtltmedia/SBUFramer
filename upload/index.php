@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['game_file'])) {
     if (!preg_match('/^[a-zA-Z0-9_\-]+\.html$/', $original_filename)) {
         $upload_message = "Error: Invalid filename. Please use only letters, numbers, underscores, and hyphens. The file must end with .html.";
     } else {
-        $upload_dir = __DIR__ . '/games/' . $user_cn . '/';
+        $upload_dir = '../games/' . $user_cn . '/';
         $upload_file = $upload_dir . $original_filename;
 
         $file_type = mime_content_type($_FILES['game_file']['tmp_name']);
