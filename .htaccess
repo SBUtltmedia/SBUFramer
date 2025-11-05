@@ -7,9 +7,12 @@
     SetEnv mail test_mail@stonybrook.edu
 </If>
 <Else>
-AuthType shibboleth
-ShibRequestSetting requireSession true 
-#require valid-user
-#ShibRequestSetting requireSession false
-require shibboleth
+    <IfModule mod_shibboleth.c>
+        AuthType shibboleth
+        ShibRequestSetting requireSession true 
+        #require valid-user
+        #ShibRequestSetting requireSession false
+        require shibboleth
+</IfModule>
+    SetEnv PHP_VALUE "session.save_path=/home/tltsecure/apache2/htdocs/userData/sessionData"
 </Else>

@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['game_file'])) {
 
                 $escaped_path = htmlspecialchars($game_path_for_player, ENT_QUOTES);
                 $upload_message = "<strong>Success!</strong> Your game's path for the LTI tool is: <code>" . $escaped_path . "</code> " .
-                                  "<button type='button' onclick='copyTextToClipboard(\"" . $escaped_path . "\"); this.innerText=\"Copied!\";' style='margin-left: 8px; padding: 4px 8px; cursor: pointer;'>&#x2398;</button>" .
+                                  "<button type='button' onclick='copyTextToClipboard(\"" . htmlspecialchars($full_game_url) . "\"); this.innerText=\"Copied!\";' style='margin-left: 8px; padding: 4px 8px; cursor: pointer;'>&#x2398;</button>" .
                                   "<br>You can test the game at: <a href=\"" . htmlspecialchars($full_game_url) . "\" target=\"_blank\">" . htmlspecialchars($full_game_url) . "</a>";
                 $upload_type = 'success';
             } else {
@@ -79,8 +79,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['game_file'])) {
         // 1. Try modern Async Clipboard API
         if (navigator.clipboard && window.isSecureContext) {
             navigator.clipboard.writeText(text)
-            .then(() => console.log('Text copied (Modern API)'))
-            .catch(err => console.error('Could not copy text (Modern API failed): ', err));
+            .then(() => {})
+            .catch(err => {});
             return;
         }
 
