@@ -31,6 +31,8 @@ if (isset($_GET['game'])) {
 // Retrieve LTI data from the session for the grading script.
 $lti_data = isset($_SESSION['lti_data']) ? $_SESSION['lti_data'] : null;
 $JSON_LTI_DATA = $lti_data ? json_encode($lti_data) : 'null';
+print_r($game_path);
+exit;
 
 ?>
 <!DOCTYPE html>
