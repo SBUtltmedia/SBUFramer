@@ -9,6 +9,9 @@ error_reporting(E_ALL);
 $message = '';
 $message_type = 'error';
 
+$server = $_ENV['VIRTUAL_HOST'] ?? 'apps.tlt.stonybrook.edu';
+
+
 // Check for and display a flash message from the session
 if (isset($_SESSION['flash_message'])) {
     $message = $_SESSION['flash_message']['text'];
@@ -48,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['game_file'])) {
 
             if (move_uploaded_file($_FILES['game_file']['tmp_name'], $upload_file)) {
                 $game_path_for_player = 'games/' . $user_cn . '/' . $original_filename;
-                $full_game_url = "https://goodluck.ddev.site/index.php?game=" . $game_path_for_player;
+                $full_game_url = "https://$server/?game=" . $game_path_for_player;
 
                 $escaped_path = htmlspecialchars($game_path_for_player, ENT_QUOTES);
                 $upload_message = "<strong>Success!</strong> Your game's path for the LTI tool is: <code>" . $escaped_path . "</code> " .
