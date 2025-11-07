@@ -1,7 +1,37 @@
 <?php
 
-
 session_start();
+
+// If LTI POST or running locally, capture identity fields
+if (array_key_exists('lis_person_name_given', $_POST))  {
+  $_SESSION['mail'] = $_POST['lis_person_contact_email_primary'] ?? '';
+  $_SESSION['givenName'] = $_POST['lis_person_name_given'] ?? '';
+  $_SESSION['nickname'] = $_POST['lis_person_name_given'] ?? '';
+  $_SESSION['sn'] = $_POST['lis_person_name_family'] ?? '';
+
+  $JSON_POST = json_encode($_POST);
+
+  // Provide a local sample payload if running in local env
+
+
+
+} elseif (!array_key_exists('mail', $_SESSION) && array_key_exists('mail', $_SERVER) ) {
+  // session already has mail value; nothing to do
+
+  $_SESSION['mail'] = $_SERVER['mail'];
+  $_SESSION['givenName'] = $_SERVER['givenName'] ?? '';
+  $_SESSION['nickname'] = $_SERVER['nickname'] ?? '';
+  $_SESSION['sn'] = $_SERVER['sn'] ?? '';
+} else {
+  if (!isset($_SERVER['cn']) && file_exists('.htaccess')) {
+    $server = $_SERVER['SERVER_NAME'] ?? '';
+    $request_uri = $_SERVER['REQUEST_URI'] ?? '';
+    $target = "https://{$server}{$request_uri}";
+    header('Location: /shib/?shibtarget=' . rawurlencode($target));
+    exit;
+  }
+}
+
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
