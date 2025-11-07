@@ -1,5 +1,6 @@
 <?php
 
+
 session_start();
 
 ini_set('display_errors', 1);
@@ -50,8 +51,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['game_file'])) {
             }
 
             if (move_uploaded_file($_FILES['game_file']['tmp_name'], $upload_file)) {
-                $game_path_for_player = 'games/' . $user_cn . '/' . $original_filename;
-                $full_game_url = "https://$server/?game=" . $game_path_for_player;
+                $game_path_for_player = '?game=games/' . $user_cn . '/' . $original_filename;
+
+                $extraPath='';
+                $location = explode("/",$_SERVER['HTTP_REFERER']);
+                if (count($location)>5){ #if it does have SBUFramer in the webiste path then add it to the new link
+                    $extraPath = "/{$location[3]}";
+                }
+                $full_game_url = "https://{$server}{$extraPath}/{$game_path_for_player}";
+
+                // print_r($full_game_url);
+                // exit;
 
                 $escaped_path = htmlspecialchars($game_path_for_player, ENT_QUOTES);
                 $upload_message = "<strong>Success!</strong> Your game's path for the LTI tool is: <code>" . $escaped_path . "</code> " .
