@@ -42,7 +42,7 @@ $JSON_LTI_DATA = $lti_data ? json_encode($lti_data) : 'null';
 <html>
 <head>
     <title>Game Connector</title>
-    <script src="/js/grading.js"></script>
+    <script src="js/grading.js"></script>
     <script>
         var ses = <?php echo $JSON_LTI_DATA; ?>;
     </script>
