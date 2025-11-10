@@ -1,12 +1,8 @@
 <?php
-
-// print_r($_POST['data']);
-print_r(gettype($_POST['data']));
-// exit;
-
-$POST = json_decode($_POST['data'], true);
-
-$ref=$POST['lis_outcome_service_url'];
+#$ref=$_SERVER['HTTP_REFERER'];
+if (array_key_exists('data',$_POST)){
+	$_POST['data'] = json_decode($_POST['data'], true); 
+$ref=$_POST['data']['lis_outcome_service_url'];
 if (!strpos($ref,"mycourses")){
 
 
@@ -23,29 +19,33 @@ else {
 #	$secret="NSlctxPORqrIGspICqtDA8UqFvTHcqrxo96XLGgSMdmmnnVBfPXElvFy6";
 #	$key="AAAAB3NzaC1yc2EAAAABJQAAAQEAkett8rI9w9NufPDOk";
 }
-if (!array_key_exists('lis_result_sourcedid', $POST)) {print 'In lti\test\index.php : No ID<br>';
-	print_r($POST);
-exit;
+if (!array_key_exists('lis_result_sourcedid', $_POST['data'])) {print 'In lti\test\index.php : No ID<br>';
+	print_r($_POST);}
+	else{
+		$postJson= json_encode($_POST);
+		$ses = array('fname' => $_POST['data']['lis_person_name_given'], 'lname' => $_POST['data']['lis_person_name_family'], 'id' => $_POST['data']['lis_result_sourcedid'], 'url' => $_POST['data']['lis_outcome_service_url']);
 
-}
-
-
-	else{		
-		$ses = array('fname' => $POST['lis_person_name_given'], 'lname' => $POST['lis_person_name_family'], 'id' => $POST['lis_result_sourcedid'], 'url' => $POST['lis_outcome_service_url']);
-
-#
+		print "In LTI/postLTI.php : Sending grade back<br>";	
+		print_r($ses);
 
 		include 'php/message.php';
 		include 'php/OAuthBody.php';
 		$id    = $ses['id'];
 		$url   = $ses['url'];
-		$grade = $POST["grade"];
+		$grade = $_POST["data"]["grade"];
+		print "Grade is $grade<br> \n";
 		if (is_null($grade))
 		{
 		$grade=0;
 		}
+		print_r(message($id, $grade));
+
 		$result = sendOAuthBodyPOST("POST", $url, $key, $secret, "application/xml", message($id, $grade));
+		print "Before preg\n";
+		print_r($result);
 		$result = preg_replace("/\r|\n/", "", $result);
+		print_r("After preg\n");
+		print_r($result);
 		if(stristr($result, 'success') === FALSE) 
 		{
 			$status= "failure";
@@ -65,3 +65,4 @@ exit;
 		$time=date('Y-m-d H:i:s');
 		//file_put_contents("/home/tltsecure/apache2/htdocs/bookMaker/Users/$status.csv","$status,${_GET['name']},$ref,$grade,\"${_SERVER['HTTP_USER_AGENT']}\",$time\n", FILE_APPEND);
 	}
+}
