@@ -1,7 +1,6 @@
 <?php
 #$ref=$_SERVER['HTTP_REFERER'];
 if (array_key_exists('data',$_POST)){
-	$_POST['data'] = json_decode($_POST['data'], true); 
 $ref=$_POST['data']['lis_outcome_service_url'];
 if (!strpos($ref,"mycourses")){
 
@@ -25,27 +24,19 @@ if (!array_key_exists('lis_result_sourcedid', $_POST['data'])) {print 'In lti\te
 		$postJson= json_encode($_POST);
 		$ses = array('fname' => $_POST['data']['lis_person_name_given'], 'lname' => $_POST['data']['lis_person_name_family'], 'id' => $_POST['data']['lis_result_sourcedid'], 'url' => $_POST['data']['lis_outcome_service_url']);
 
-		print "In LTI/postLTI.php : Sending grade back<br>";	
-		print_r($ses);
+#
 
 		include 'php/message.php';
 		include 'php/OAuthBody.php';
 		$id    = $ses['id'];
 		$url   = $ses['url'];
 		$grade = $_POST["data"]["grade"];
-		print "Grade is $grade<br> \n";
 		if (is_null($grade))
 		{
 		$grade=0;
 		}
-		print_r(message($id, $grade));
-
 		$result = sendOAuthBodyPOST("POST", $url, $key, $secret, "application/xml", message($id, $grade));
-		print "Before preg\n";
-		print_r($result);
 		$result = preg_replace("/\r|\n/", "", $result);
-		print_r("After preg\n");
-		print_r($result);
 		if(stristr($result, 'success') === FALSE) 
 		{
 			$status= "failure";
