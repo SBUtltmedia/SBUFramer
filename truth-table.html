@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Truth Table Challenge</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for T and F */
+        .val-true {
+            color: #4ade80; /* green-400 */
+            font-weight: 700;
+        }
+        .val-false {
+            color: #f87171; /* red-400 */
+            font-weight: 700;
+        }
+        
+        /* Styles for column backgrounds */
+        .col-correct {
+            background-color: #064e3b; /* green-900 */
+        }
+        .col-incorrect {
+            background-color: #7f1d1d; /* red-900 */
+        }
+
+        /* Ensure table cells have a consistent height */
+        .truth-table th, .truth-table td {
+            padding: 0.75rem 1rem;
+            border: 1px solid #374151; /* gray-700 */
+            text-align: center;
+            min-width: 60px;
+            transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+            /* Allow long WFFs to wrap */
+            word-break: break-all;
+        }
+        
+        .truth-table th {
+            font-weight: 600;
+            background-color: #374151; /* gray-700 */
+        }
+        
+        .truth-table .static-col {
+            background-color: #374151; /* gray-700 */
+            font-weight: 600;
+        }
+
+        .truth-table .interactive-cell {
+            cursor: pointer;
+        }
+        .truth-table .interactive-cell:not(.col-correct):not(.col-incorrect):hover {
+            background-color: #4b5563; /* gray-600 */
+        }
+        
+        /* Override for headers for a slightly different shade */
+        .truth-table th.col-correct {
+            background-color: #065f46; /* green-800 */
+        }
+        .truth-table th.col-incorrect {
+            background-color: #991b1b; /* red-800 */
+        }
+
+        /* Styles for navigation buttons */
+        .nav-btn {
+            @apply px-4 py-2 rounded-md font-semibold text-gray-100 bg-gray-700 hover:bg-gray-600 transition-colors;
+        }
+        .nav-btn:disabled {
+            @apply bg-gray-800 text-gray-500 cursor-not-allowed;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 font-sans antialiased text-gray-100">
+
+    <div class="w-full max-w-full mx-auto p-4 sm:p-6 lg:p-8">
+      <h1 class="text-3xl font-bold text-center text-gray-100 mb-4">
+        Truth Table Challenge
+      </h1>
+      <!-- Global Tally -->
+      <div id="global-tally" class="text-center text-xl font-semibold mb-4 text-cyan-300">
+        Problems Completed: 0 / 10
+      </div>
+      
+      <p class="text-center text-gray-300 mb-6 max-w-3xl mx-auto">
+        This game challenges you to complete the truth table for all constituents of a given formula.
+        Click 'F' to toggle. Columns turn <span class="font-bold text-green-400">green</span> when correct.
+      </p>
+
+      <!-- Navigation -->
+      <div class="flex justify-between items-center max-w-lg mx-auto mb-4">
+        <button id="prev-btn" class="nav-btn">&larr; Previous</button>
+        <div class="text-lg font-semibold text-gray-300">
+          Problem <span id="problem-num">1</span> of <span id="problem-total">10</span>
+        </div>
+        <button id="next-btn" class="nav-btn">Next &rarr;</button>
+      </div>
+      
+      <!-- WFF Display -->
+      <div id="wff-display" class="text-center text-lg font-mono text-cyan-300 bg-gray-800 p-4 rounded-md mb-6 break-words">
+        <!-- WFF will be inserted by JS -->
+      </div>
+      
+      <!-- Tally Display -->
+      <div id="tally-display" class="text-center text-xl font-semibold mb-6">
+        <!-- Tally will be inserted by JS -->
+      </div>
+      
+      <!-- Win Message -->
+      <div id="win-message" class="hidden p-4 mb-6 bg-green-900 text-green-200 rounded-lg text-center font-semibold text-xl shadow">
+        🎉 Congratulations! You've correctly defined all constituents for this problem! 🎉
+      </div>
+
+      <!-- Tables Container -->
+      <div id="tables-container" class="w-full flex flex-col xl:flex-row xl:justify-center xl:space-x-6">
+        <!-- Table 1 -->
+        <div class="overflow-x-auto shadow-md rounded-lg bg-gray-800 mb-6 xl:mb-0">
+          <table id="truth-table-1" class="truth-table min-w-full text-sm">
+            <thead id="table-header-1" class="text-xs text-gray-300 uppercase">
+              <!-- Header 1 -->
+            </thead>
+            <tbody id="table-body-1" class="divide-y divide-gray-700">
+              <!-- Body 1 -->
+            </tbody>
+          </table>
+        </div>
+        <!-- Table 2 -->
+        <div id="table-container-2" class="overflow-x-auto shadow-md rounded-lg bg-gray-800">
+          <table id="truth-table-2" class="truth-table min-w-full text-sm">
+            <thead id="table-header-2" class="text-xs text-gray-300 uppercase">
+              <!-- Header 2 -->
+            </thead>
+            <tbody id="table-body-2" class="divide-y divide-gray-700">
+              <!-- Body 2 -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- The Problem Set ---
+            const problemSet = [
+                '~ p v ~ q',                            // 1. (Fixed from _)
+                '~ ~ p v q',                            // 2.
+                'p -> ~ q',                             // 3.
+                '~ p ^ p',                              // 4.
+                '~ p -> ~ ~ q',                         // 5.
+                'q -> ~ ~ p',                           // 6.
+                '(p -> ~ q) v (p -> q)',                // 7.
+                '(q -> p) ^ (p -> q)',                  // 8.
+                '((~ p -> q) v (~ p -> q)) -> q',        // 9.
+                '(~ p -> q) -> ((~ p -> q) v (p -> ~ q))' // 10.
+            ];
+
+            // --- Global State ---
+            const pValues = [true, true, false, false];
+            const qValues = [true, false, true, false];
+            
+            // --- NEW Persisted State ---
+            // These store progress across all problems
+            let globalUserState = {}; // Stores { 0: {wff: [T,F...]}, 1: {...} }
+            let globalCorrectColumns = {}; // Stores { 0: Set('wff1'), 1: Set(...) }
+            let problemsCompleted = new Set(); // Stores Set(0, 1, ...)
+
+            // These are problem-specific and rebuilt on each load
+            let solutions = {};
+            let connectiveNames = [];
+            let totalCols = 0;
+            // These are local aliases, pointing to the global state for the *current* problem
+            let userState = {}; 
+            let correctColumns = new Set();
+            let currentProblemIndex = 0;
+            
+            // Get DOM elements
+            const globalTallyDisplay = document.getElementById('global-tally');
+            const tallyDisplay = document.getElementById('tally-display');
+            const header1 = document.getElementById('table-header-1');
+            const body1 = document.getElementById('table-body-1');
+            const tableContainer2 = document.getElementById('table-container-2');
+            const header2 = document.getElementById('table-header-2');
+            const body2 = document.getElementById('table-body-2');
+            const winMessage = document.getElementById('win-message');
+            const wffDisplay = document.getElementById('wff-display');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const problemNumSpan = document.getElementById('problem-num');
+            const problemTotalSpan = document.getElementById('problem-total');
+
+            problemTotalSpan.textContent = problemSet.length;
+
+            // --- WFF Parser and Evaluator ---
+
+            /**
+             * Finds all constituent sub-expressions of a WFF.
+             * This includes atoms like ~p, ~~p and all balanced parenthesized expressions.
+             */
+            function parseConstituents(wff) {
+                const subExpressions = new Set();
+                
+                // Add atoms like p, q, ~p, ~~q, etc.
+                const atoms = wff.match(/~* ?[pq]/g) || [];
+                atoms.forEach(a => subExpressions.add(a.replace(/ /g, '')));
+
+                // Find all parenthesized expressions using a stack
+                const stack = [];
+                for (let i = 0; i < wff.length; i++) {
+                    if (wff[i] === '(') {
+                        stack.push(i);
+                    } else if (wff[i] === ')') {
+                        if (stack.length > 0) {
+                            const start = stack.pop();
+                            // Get substring and remove internal spaces
+                            const sub = wff.substring(start, i + 1).replace(/ /g, '');
+                            subExpressions.add(sub);
+                        }
+                    }
+                }
+                
+                // Add the full WFF itself (with spaces removed)
+                subExpressions.add(wff.replace(/ /g, ''));
+                
+                const allSubExpressions = Array.from(subExpressions);
+                
+                // Sort by length (simplest constituents first)
+                return allSubExpressions.sort((a, b) => a.length - b.length);
+            }
+
+            /**
+             * Evaluates a WFF string for a given p and q value.
+             */
+            function evaluateWFF(wff, p, q) {
+                // wff comes in with spaces already removed
+                let expr = wff;
+                expr = expr.replace(/p/g, p);
+                expr = expr.replace(/q/g, q);
+                expr = expr.replace(/~/g, '!'); // NOT
+                expr = expr.replace(/v/g, '||'); // OR
+                expr = expr.replace(/\^/g, '&&'); // AND
+                expr = expr.replace(/<->/g, '==='); // IFF
+                
+                // JS boolean logic hack: (A -> B) is equivalent to (!A || B),
+                // which is also equivalent to (A <= B) in JS boolean logic
+                expr = expr.replace(/->/g, '<='); // IMPLIES
+                
+                try {
+                    return eval(expr);
+                } catch (e) {
+                    console.error('Error evaluating WFF:', wff, 'Converted to:', expr, e);
+                    return false; 
+                }
+            }
+            
+            /**
+             * Calculates the 'solutions' object for all constituents.
+             */
+            function calculateSolutions() {
+                connectiveNames.forEach(name => {
+                    solutions[name] = [];
+                    for (let i = 0; i < 4; i++) {
+                        const truthValue = evaluateWFF(name, pValues[i], qValues[i]);
+                        solutions[name].push(truthValue);
+                    }
+                });
+            }
+            
+            /**
+             * Loads WFF from problem set based on hash.
+             */
+            function loadGameConfig() {
+                // Reset problem-specific state
+                solutions = {};
+                connectiveNames = [];
+                userState = {};
+                correctColumns = new Set();
+                winMessage.classList.add('hidden');
+
+                // Get problem number from hash
+                let problemNum = parseInt(window.location.hash.substring(1), 10);
+                if (isNaN(problemNum) || problemNum < 1 || problemNum > problemSet.length) {
+                    problemNum = 1;
+                }
+                currentProblemIndex = problemNum - 1;
+                
+                // Update UI
+                problemNumSpan.textContent = problemNum;
+                prevBtn.disabled = (problemNum === 1);
+                nextBtn.disabled = (problemNum === problemSet.length);
+
+                const wffString = problemSet[currentProblemIndex];
+                wffDisplay.textContent = `Current Formula: ${wffString}`;
+                
+                // 1. Parse WFF into constituents
+                connectiveNames = parseConstituents(wffString);
+                
+                // Remove 'p' and 'q' from the list if they exist,
+                // as they will be static columns
+                connectiveNames = connectiveNames.filter(name => name !== 'p' && name !== 'q');
+                
+                totalCols = connectiveNames.length;
+                
+                // 2. Calculate correct answers
+                calculateSolutions();
+                
+                // 3. Initialize or LOAD user state from global state
+                if (!globalUserState[currentProblemIndex]) {
+                    // First time visiting this problem, initialize it
+                    const initialState = {};
+                    connectiveNames.forEach(name => {
+                        initialState[name] = [false, false, false, false];
+                    });
+                    globalUserState[currentProblemIndex] = initialState;
+                }
+                // Set the local alias to point to the global state for this problem
+                userState = globalUserState[currentProblemIndex];
+
+                // 4. Initialize or LOAD correct columns from global state
+                if (!globalCorrectColumns[currentProblemIndex]) {
+                    // First time, initialize
+                    globalCorrectColumns[currentProblemIndex] = new Set();
+                }
+                // Set local alias
+                correctColumns = globalCorrectColumns[currentProblemIndex];
+
+                // 5. Split columns for two tables
+                const MAX_INTERACTIVE_COLS_ONE_TABLE = 5; // Breakpoint
+                let connectiveNames1 = [];
+                let connectiveNames2 = [];
+
+                if (totalCols <= MAX_INTERACTIVE_COLS_ONE_TABLE) {
+                    // Put all in table 1 if at or below breakpoint
+                    connectiveNames1 = connectiveNames;
+                    connectiveNames2 = []; // Ensure table 2 is empty
+                } else {
+                    // Split them if over breakpoint
+                    const splitPoint = Math.ceil(totalCols / 2);
+                    connectiveNames1 = connectiveNames.slice(0, splitPoint);
+                    connectiveNames2 = connectiveNames.slice(splitPoint);
+                }
+                
+                return { connectiveNames1, connectiveNames2 };
+            }
+
+            // --- Initialize Game ---
+            function init() {
+                const { connectiveNames1, connectiveNames2 } = loadGameConfig();
+                
+                // 2. Render the tables
+                renderTable(header1, body1, connectiveNames1, true); // Include P,Q in first table
+                
+                if (connectiveNames2.length > 0) {
+                    renderTable(header2, body2, connectiveNames2, false); // Exclude P,Q from second table
+                    tableContainer2.classList.remove('hidden');
+                } else {
+                    tableContainer2.classList.add('hidden');
+                }
+                
+                // 3. Do an initial check of all columns (this will use the loaded state)
+                checkAllColumns();
+                
+                // 4. Set initial tally (for the current problem)
+                updateTally();
+                
+                // 5. Set global tally
+                updateGlobalTally();
+            }
+
+            // --- Render Functions (now with includePQ flag) ---
+            function renderTable(tableHeader, tableBody, names, includePQ) {
+                // 1. Clear existing table
+                tableHeader.innerHTML = '';
+                tableBody.innerHTML = '';
+                
+                // 2. Create Header Row
+                const headerRow = document.createElement('tr');
+                if (includePQ) {
+                    headerRow.appendChild(createHeaderCell('P'));
+                    headerRow.appendChild(createHeaderCell('Q'));
+                }
+                
+                names.forEach(name => {
+                    headerRow.appendChild(createHeaderCell(name, true));
+                });
+                tableHeader.appendChild(headerRow);
+                
+                // 3. Create Body Rows
+                for (let i = 0; i < 4; i++) {
+                    const row = document.createElement('tr');
+                    
+                    if (includePQ) {
+                        row.appendChild(createStaticCell(pValues[i]));
+                        row.appendChild(createStaticCell(qValues[i]));
+                    }
+                    
+                    names.forEach(name => {
+                        row.appendChild(createInteractiveCell(name, i));
+                    });
+                    
+                    tableBody.appendChild(row);
+                }
+            }
+
+            function createHeaderCell(text, isConnective = false) {
+                const th = document.createElement('th');
+                th.scope = 'col';
+                th.textContent = text;
+                if (isConnective) {
+                    th.dataset.connective = text;
+                }
+                return th;
+            }
+
+            function createStaticCell(value) {
+                const td = document.createElement('td');
+                td.textContent = value ? 'T' : 'F';
+                td.className = value ? 'val-true static-col' : 'val-false static-col';
+                return td;
+            }
+
+            function createInteractiveCell(connectiveName, rowIndex) {
+                const td = document.createElement('td');
+                const currentValue = userState[connectiveName][rowIndex];
+                
+                td.textContent = currentValue ? 'T' : 'F';
+                td.className = (currentValue ? 'val-true' : 'val-false') + ' interactive-cell';
+                td.dataset.connective = connectiveName;
+                td.dataset.row = rowIndex;
+                
+                td.addEventListener('click', handleCellClick);
+                return td;
+            }
+            
+            // --- Event Handlers ---
+            function handleCellClick(e) {
+                const cell = e.currentTarget;
+                const connectiveName = cell.dataset.connective;
+                const rowIndex = parseInt(cell.dataset.row, 10);
+                
+                const newValue = !userState[connectiveName][rowIndex];
+                userState[connectiveName][rowIndex] = newValue;
+                
+                cell.textContent = newValue ? 'T' : 'F';
+                cell.classList.toggle('val-true', newValue);
+                cell.classList.toggle('val-false', !newValue);
+                
+                checkColumn(connectiveName);
+                checkWinCondition();
+            }
+
+            prevBtn.addEventListener('click', () => {
+                if (currentProblemIndex > 0) {
+                    window.location.hash = `#${currentProblemIndex}`; // Hash is 1-based
+                }
+            });
+
+            nextBtn.addEventListener('click', () => {
+                if (currentProblemIndex < problemSet.length - 1) {
+                    window.location.hash = `#${currentProblemIndex + 2}`; // Hash is 1-based
+                }
+            });
+
+            // Listen for hash changes to reload the game
+            window.addEventListener('hashchange', init);
+
+
+            // --- Tally Function ---
+            function updateTally() {
+                const correctCount = correctColumns.size;
+                const incorrectCount = totalCols - correctCount;
+                tallyDisplay.innerHTML = `Correct: <span class="text-green-400 font-bold">${correctCount}</span> | Incorrect: <span class="text-red-400 font-bold">${incorrectCount}</span>`;
+            }
+
+            // NEW function for global progress
+            function updateGlobalTally() {
+                globalTallyDisplay.innerHTML = `Problems Completed: <span class="font-bold text-cyan-200">${problemsCompleted.size} / ${problemSet.length}</span>`;
+            }
+
+            // --- Validation Functions ---
+            function checkColumn(connectiveName) {
+                const userCol = userState[connectiveName];
+                const solutionCol = solutions[connectiveName];
+                
+                if (!solutionCol) {
+                    console.error("No solution found for:", connectiveName);
+                    return;
+                }
+
+                const isCorrect = userCol.every((val, index) => val === solutionCol[index]);
+                
+                const headerCell = document.querySelector(`th[data-connective="${CSS.escape(connectiveName)}"]`);
+                const dataCells = document.querySelectorAll(`td[data-connective="${CSS.escape(connectiveName)}"]`);
+                
+                const correctClass = 'col-correct';
+                const incorrectClass = 'col-incorrect';
+                
+                const cellsToUpdate = [headerCell, ...dataCells];
+                
+                if (isCorrect) {
+                    cellsToUpdate.forEach(cell => {
+                        if (cell) { 
+                            cell.classList.add(correctClass);
+                            cell.classList.remove(incorrectClass);
+                        }
+                    });
+                    correctColumns.add(connectiveName);
+                } else {
+                    cellsToUpdate.forEach(cell => {
+                         if (cell) {
+                            cell.classList.add(incorrectClass);
+                            cell.classList.remove(correctClass);
+                        }
+                    });
+                    correctColumns.delete(connectiveName);
+                }
+                
+                // Note: userState and correctColumns are aliases for the
+                // global state, so this function is already updating persistence.
+                
+                updateTally();
+            }
+
+            function checkAllColumns() {
+                connectiveNames.forEach(name => {
+                    checkColumn(name);
+                });
+            }
+
+            function checkWinCondition() {
+                if (totalCols > 0 && correctColumns.size === totalCols) {
+                    winMessage.classList.remove('hidden');
+                    // Add to global completed set
+                    problemsCompleted.add(currentProblemIndex);
+                } else {
+                    winMessage.classList.add('hidden');
+                    // If user "un-completes" it
+                    problemsCompleted.delete(currentProblemIndex);
+                }
+                // Update the global tally display
+                updateGlobalTally();
+            }
+
+            // Start the game on initial load
+            init();
+        });
+    </script>
+</body>
+</html>

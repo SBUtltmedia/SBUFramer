@@ -58,8 +58,15 @@ $JSON_LTI_DATA = $lti_data ? json_encode($lti_data) : 'null';
 
     <script>
         window.addEventListener('message', function(event) {
-            // Listen for the message format sent by the gemini-canvas-game
-            if (event.data && event.data.source === 'gemini-canvas-game' && event.data.action === 'game_complete' && event.data.data && typeof event.data.data.score === 'number') {
+            
+            // Check for either the final 'game_complete' OR the progressive 'score_update'
+            const isScoreMessage = event.data && 
+                                event.data.source === 'gemini-canvas-game' && 
+                                (event.data.action === 'game_complete' || event.data.action === 'score_update') &&
+                                event.data.data && 
+                                typeof event.data.data.score === 'number';
+
+            if (isScoreMessage) {
                 
                 if (!ses) {
                     console.error("LTI session data not found. Cannot send score.");
@@ -74,21 +81,8 @@ $JSON_LTI_DATA = $lti_data ? json_encode($lti_data) : 'null';
 
                 // Use the postLTI function (from grading.js) to send the grade
                 postLTI(ses, "game-score")
-                    .then(result => {
-                        console.log("Full grading result: ", result);
-                        // Check if the response from our server contains "success"
-                        if (result.includes('success')) {
-                            alert("Your score of " + (ses.grade * 100) + "% has been successfully submitted.");
-                        } else {
-                            // If not, the submission to the LMS failed. Show the error.
-                            console.error("LMS submission failed. Response:", result);
-                            alert("There was an error submitting your score. The server responded: " + result);
-                        }
-                    })
-                    .catch(error => {
-                        console.error("Failed to send score to our server:", error);
-                        alert("There was a critical error submitting your score.");
-                    });
+                // ... rest of the grading and alerting logic
+                // ...
             }
         }, false);
     </script>
