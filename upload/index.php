@@ -23,7 +23,7 @@ if (array_key_exists('lis_person_name_given', $_POST))  {
   $_SESSION['nickname'] = $_SERVER['nickname'] ?? '';
   $_SESSION['sn'] = $_SERVER['sn'] ?? '';
 } else {
-  if (!isset($_SERVER['cn']) && file_exists('.htaccess')) {
+  if (!isset($_SERVER['cn'])) {
     $server = $_SERVER['SERVER_NAME'] ?? '';
     $request_uri = $_SERVER['REQUEST_URI'] ?? '';
     $target = "https://{$server}{$request_uri}";
