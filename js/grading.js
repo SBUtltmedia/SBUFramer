@@ -1,12 +1,26 @@
 function postLTI(ses, name) {
     console.log("--- GRADING.JS: ATTEMPTING TO FETCH postLTI.php NOW ---");
 
-    // The postLTI.php script expects a POST parameter named 'data'
-    // whose value is a JSON string of the LTI session data.
-    const dataAsJsonString = JSON.stringify(ses);
-    const body = `data=${encodeURIComponent(dataAsJsonString)}`;
+    // Helper to convert a nested object to the x-www-form-urlencoded format that PHP expects.
+    // This mimics jQuery's $.post behavior for objects.
+    function buildFormData(data, parentKey) {
+        let formData = [];
+        for (let key in data) {
+            if (data.hasOwnProperty(key)) {
+                let fullKey = parentKey ? `${parentKey}[${key}]` : key;
+                if (typeof data[key] === 'object' && data[key] !== null) {
+                    formData.push(buildFormData(data[key], fullKey));
+                } else {
+                    formData.push(`${encodeURIComponent(fullKey)}=${encodeURIComponent(data[key])}`);
+                }
+            }
+        }
+        return formData.join('&');
+    }
 
     const url = `/LTI/postLTI.php?name=${encodeURIComponent(name || '')}`;
+    // The 'ses' object is wrapped under a 'data' key to create the 'data[...]' parameter structure.
+    const body = buildFormData(ses, 'data');
 
     return fetch(url, {
         method: 'POST',
