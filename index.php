@@ -22,7 +22,7 @@ if (isset($_GET['game'])) {
     // IMPORTANT: Security check to prevent directory traversal attacks.
     // We ensure the path is relative, starts with 'games/', and doesn't go "up" the directory tree.
     $unsafe_path = $_GET['game'];
-    if (strpos($unsafe_path, '..') === false && strpos($unsafe_path, 'games/') === 0) {
+    if (strpos($unsafe_path, '..') === false && (strpos($unsafe_path, 'games/') === 0 || strpos($unsafe_path, 'upload/') === 0)) {
         $game_path = $unsafe_path;
     } else {
         $error_message = "Invalid game path specified.";
@@ -52,8 +52,19 @@ $JSON_LTI_DATA = $lti_data ? json_encode($lti_data) : 'null';
     <?php if ($game_path && !$error_message): ?>
         <iframe id="game-frame" src="<?php echo htmlspecialchars($game_path); ?>" style="width: 100%; height: 95vh; border: none;"></iframe>
     <?php else: ?>
-        <h2>Error</h2>
-        <p><?php echo htmlspecialchars($error_message); ?></p>
+        <div style="padding: 20px; font-family: sans-serif;">
+            <h2>Upload a Game</h2>
+            <p>Please upload your HTML game file.</p>
+            <form action="upload_handler.php" method="post" enctype="multipart/form-data">
+                <input type="file" name="game_file" id="game_file" accept=".html">
+                <br><br>
+                <input type="submit" value="Upload Game" name="submit">
+            </form>
+            <?php if ($error_message): ?>
+                <h2 style="color: red; margin-top: 20px;">Error</h2>
+                <p style="color: red;"><?php echo htmlspecialchars($error_message); ?></p>
+            <?php endif; ?>
+        </div>
     <?php endif; ?>
 
     <script>
