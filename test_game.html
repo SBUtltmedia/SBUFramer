@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Game</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background-color: #f0f0f0; }
+        button { padding: 10px 20px; margin: 10px; font-size: 16px; cursor: pointer; }
+        #game-state { margin-top: 20px; font-size: 18px; color: #333; }
+    </style>
+</head>
+<body>
+    <h1>My Awesome Test Game</h1>
+    <p>This is a simple game to test the LTI and save functionality.</p>
+    <div id="game-state">Score: 0</div>
+
+    <button id="score-button">Increase Score & Send Update</button>
+    <button id="complete-button">Complete Game & Send Final Score</button>
+    <button id="save-button">Save Game State</button>
+    <button id="load-button">Load Game State</button>
+
+    <script src="../../../js/library.js"></script>
+    <script>
+        let currentScore = 0;
+        const gameStateDisplay = document.getElementById('game-state');
+
+        function updateDisplay() {
+            gameStateDisplay.textContent = `Score: ${currentScore}`;
+        }
+
+        document.getElementById('score-button').addEventListener('click', () => {
+            currentScore += 10;
+            updateDisplay();
+            CanvasGame.notifyParent('score_update', { score: currentScore, game_name: 'test_game' });
+            console.log('Score updated:', currentScore);
+        });
+
+        document.getElementById('complete-button').addEventListener('click', () => {
+            currentScore += 50; // Final bonus
+            updateDisplay();
+            CanvasGame.notifyParent('game_complete', { score: currentScore, game_name: 'test_game' });
+            console.log('Game completed with final score:', currentScore);
+        });
+
+        document.getElementById('save-button').addEventListener('click', async () => {
+            const stateToSave = { score: currentScore, lastPlayed: new Date().toISOString() };
+            try {
+                const response = await fetch('saves/gameState.php?action=save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(stateToSave)
+                });
+                const result = await response.json();
+                if (result.status === 'success') {
+                    console.log('Game state saved successfully:', result);
+                    alert('Game saved!');
+                } else {
+                    console.error('Failed to save game state:', result);
+                    alert('Failed to save game!');
+                }
+            } catch (error) {
+                console.error('Error saving game state:', error);
+                alert('Error saving game!');
+            }
+        });
+
+        document.getElementById('load-button').addEventListener('click', async () => {
+            try {
+                const response = await fetch('saves/gameState.php?action=load');
+                const result = await response.json();
+                if (result.status === 'success' && result.data) {
+                    currentScore = result.data.score || 0;
+                    updateDisplay();
+                    console.log('Game state loaded successfully:', result.data);
+                    alert('Game loaded!');
+                } else if (result.status === 'error' && result.message === 'No game state found.') {
+                    console.log('No saved game found.');
+                    alert('No saved game found!');
+                } else {
+                    console.error('Failed to load game state:', result);
+                    alert('Failed to load game!');
+                }
+            } catch (error) {
+                console.error('Error loading game state:', error);
+                alert('Error loading game!');
+            }
+        });
+
+        updateDisplay(); // Initialize display
+    </script>
+</body>
+</html>

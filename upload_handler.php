@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['game_file'])) {
     $game_prefix = pathinfo($original_filename, PATHINFO_FILENAME);
     $game_prefix = preg_replace('/[^a-zA-Z0-9_-]/', '', $game_prefix); // Sanitize prefix
 
-    $target_dir = "upload/" . $user_id . "/" . $game_prefix . "/";
+    $target_dir = "games/" . $user_id . "/" . $game_prefix . "/";
 
     // 3. Create directory
     if (!is_dir($target_dir)) {
@@ -53,10 +53,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['game_file'])) {
     $new_filepath = $target_dir . "index.html";
     if (move_uploaded_file($uploaded_file['tmp_name'], $new_filepath)) {
         
+        $saves_dir = $target_dir . 'saves/';
+        if (!is_dir($saves_dir)) {
+            if (!mkdir($saves_dir, 0755, true)) {
+                die("Failed to create directory: " . $saves_dir);
+            }
+        }
+
         // 5. Create a symlink to the master gameState.php
-        // The relative path from /upload/<user>/<game>/ to the root is ../../../
-        $symlink_target = '../../../gameState.php';
-        $symlink_name = $target_dir . 'gameState.php';
+        // The relative path from /upload/<user>/<game>/saves to the root is ../../../../
+        $symlink_target = '../../../../gameState.php';
+        $symlink_name = $saves_dir . 'gameState.php';
         if (!file_exists($symlink_name)) {
             if (!symlink($symlink_target, $symlink_name)) {
                 // Optional: add error handling if symlink fails
@@ -65,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['game_file'])) {
         }
 
         // 6. Redirect to the new game
-        $game_url_path = htmlspecialchars($target_dir . "index.html");
+        $game_url_path = htmlspecialchars("games/" . $user_id . "/" . $game_prefix . "/" . "index.html");
         header("Location: /index.php?game=" . $game_url_path);
         exit();
 

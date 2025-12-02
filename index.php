@@ -22,7 +22,7 @@ if (isset($_GET['game'])) {
     // IMPORTANT: Security check to prevent directory traversal attacks.
     // We ensure the path is relative, starts with 'games/', and doesn't go "up" the directory tree.
     $unsafe_path = $_GET['game'];
-    if (strpos($unsafe_path, '..') === false && (strpos($unsafe_path, 'games/') === 0 || strpos($unsafe_path, 'upload/') === 0)) {
+    if (strpos($unsafe_path, '..') === false && strpos($unsafe_path, 'games/') === 0) {
         $game_path = $unsafe_path;
     } else {
         $error_message = "Invalid game path specified.";
