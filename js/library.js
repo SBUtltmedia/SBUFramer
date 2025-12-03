@@ -23,9 +23,18 @@
  * // When a player needs more lives, notify the parent frame
  * CanvasGame.notifyParent('need_lives');
  *
+ * // Save game state
+ * CanvasGame.save({ level: 5, inventory: ['sword', 'shield'] });
+ *
+ * // Load game state
+ * CanvasGame.requestLoad();
+ * CanvasGame.onLoad((data) => {
+ *   console.log('Loaded state:', data);
+ * });
+ *
  * The parent frame will listen for these messages and handle them accordingly.
  * The AI should generate a complete game that uses this library to communicate its
- * state, such as game completion and final score.
+ * state, such as game completion, final score, and saving/loading.
  *
  * Note on security: `postMessage` is used to send the data. A target origin of
  * '*' is used for simplicity. For production environments, the AI should instruct
@@ -61,4 +70,32 @@ CanvasGame.notifyParent = (action, payload = {}) => {
   } else {
     console.warn('The game is not running in an iframe, cannot communicate with a parent.');
   }
+};
+
+/**
+ * Sends a request to the parent window to save the current game state.
+ * @param {object} data - The game state object to save.
+ */
+CanvasGame.save = (data) => {
+    CanvasGame.notifyParent('save_state', data);
+};
+
+/**
+ * Sends a request to the parent window to load the saved game state.
+ */
+CanvasGame.requestLoad = () => {
+    CanvasGame.notifyParent('load_state');
+};
+
+/**
+ * Registers a callback function to handle the loaded game state received from the parent window.
+ * @param {function} callback - The function to call when the state is loaded. It receives the state data as an argument.
+ */
+CanvasGame.onLoad = (callback) => {
+    window.addEventListener('message', (event) => {
+        // Validate the message source and action
+        if (event.data && event.data.source === 'gemini-canvas-parent' && event.data.action === 'load_state_response') {
+            callback(event.data.data);
+        }
+    });
 };

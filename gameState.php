@@ -39,9 +39,9 @@ function getUserIdentifier() {
  * @return string The absolute path to the saves directory.
  */
 function getSaveDirectory() {
-    // __DIR__ will be the directory where the symlink for gameState.php resides.
+    // getcwd() returns the directory where the script is being executed from (the symlink location)
     // e.g., /path/to/project/games/<user_id>/<game_name>/saves/
-    return __DIR__ . '/';
+    return getcwd() . '/';
 }
 
 /**

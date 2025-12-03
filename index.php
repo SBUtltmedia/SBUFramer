@@ -45,6 +45,7 @@ $JSON_LTI_DATA = $lti_data ? json_encode($lti_data) : 'null';
     <script src="js/grading.js"></script>
     <script>
         var ses = <?php echo $JSON_LTI_DATA; ?>;
+        var gamePath = "<?php echo $game_path ? htmlspecialchars($game_path) : ''; ?>";
     </script>
 </head>
 <body>
@@ -70,31 +71,68 @@ $JSON_LTI_DATA = $lti_data ? json_encode($lti_data) : 'null';
     <script>
         window.addEventListener('message', function(event) {
             
-            // Check for either the final 'game_complete' OR the progressive 'score_update'
-            const isScoreMessage = event.data && 
-                                event.data.source === 'gemini-canvas-game' && 
-                                (event.data.action === 'game_complete' || event.data.action === 'score_update') &&
-                                event.data.data && 
-                                typeof event.data.data.score === 'number';
-
-            if (isScoreMessage) {
-                
-                if (!ses) {
-                    console.error("LTI session data not found. Cannot send score.");
-                    return;
-                }
-
-                var score = event.data.data.score;
-                console.log("Score received from game: " + score);
-
-                // Add the received score to our session data object
-                ses.grade = score;
-
-                // Use the postLTI function (from grading.js) to send the grade
-                postLTI(ses, "game-score")
-                // ... rest of the grading and alerting logic
-                // ...
+            if (!event.data || event.data.source !== 'gemini-canvas-game') {
+                return;
             }
+
+            // Handle Game Completion / Score Update
+            if (event.data.action === 'game_complete' || event.data.action === 'score_update') {
+                if (event.data.data && typeof event.data.data.score === 'number') {
+                    if (!ses) {
+                        console.error("LTI session data not found. Cannot send score.");
+                        return;
+                    }
+
+                    var score = event.data.data.score;
+                    console.log("Score received from game: " + score);
+
+                    // Add the received score to our session data object
+                    ses.grade = score;
+
+                    // Use the postLTI function (from grading.js) to send the grade
+                    postLTI(ses, "game-score")
+                }
+            } 
+            
+            // Handle Save State Request
+            else if (event.data.action === 'save_state') {
+                if (!gamePath) return; // Only process if a game is loaded
+                const gameStateUrl = gamePath.substring(0, gamePath.lastIndexOf('/')) + '/saves/gameState.php?action=save';
+                
+                fetch(gameStateUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(event.data.data)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Game state saved via parent:', data);
+                    // Optional: Notify game back?
+                })
+                .catch(error => console.error('Error saving game state via parent:', error));
+            }
+            
+            // Handle Load State Request
+            else if (event.data.action === 'load_state') {
+                if (!gamePath) return; // Only process if a game is loaded
+                const gameStateUrl = gamePath.substring(0, gamePath.lastIndexOf('/')) + '/saves/gameState.php?action=load';
+                
+                fetch(gameStateUrl)
+                .then(response => response.json())
+                .then(result => {
+                    // Send data back to iframe IF it's successful
+                    const gameFrame = document.getElementById('game-frame');
+                    if (gameFrame && gameFrame.contentWindow) {
+                        gameFrame.contentWindow.postMessage({
+                            source: 'gemini-canvas-parent',
+                            action: 'load_state_response',
+                            data: result.data || null // Send null if no data or error
+                        }, '*');
+                    }
+                })
+                .catch(error => console.error('Error loading game state via parent:', error));
+            }
+
         }, false);
     </script>
 

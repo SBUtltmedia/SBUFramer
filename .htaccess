@@ -4,7 +4,7 @@
     SetEnv nickname test_nickname
     SetEnv givenName test_givenName
     SetEnv sn test_sn
-    SetEnv mail test_mail@stonybrook.edu
+    SetEnv mail test_mail1@stonybrook.edu
 </If>
 <Else>
     <IfModule mod_shibboleth.c>
