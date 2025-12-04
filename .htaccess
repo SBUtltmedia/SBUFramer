@@ -7,7 +7,7 @@
     SetEnv mail test_mail1@stonybrook.edu
 </If>
 <Else>
-    <IfModule shibboleth_module>
+    <IfModule mod_shib|mod_shib.c|shibboleth_module>
         AuthType shibboleth
         ShibRequestSetting requireSession false
         #require valid-user
