@@ -7,15 +7,10 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-session_start();
+require_once 'auth.php';
 
 $game_path = null;
 $error_message = '';
-
-// LTI Launch Logic: Store LTI data in the session.
-if (array_key_exists("lis_person_name_given", $_POST)) {
-    $_SESSION['lti_data'] = $_POST;
-}
 
 // Check for the game path in the query string.
 if (isset($_GET['game'])) {
@@ -31,8 +26,9 @@ if (isset($_GET['game'])) {
     $error_message = "No game specified.";
 }
 
-// Retrieve LTI data from the session for the grading script.
-$lti_data = isset($_SESSION['lti_data']) ? $_SESSION['lti_data'] : null;
+// Retrieve LTI data from the user context for the grading script.
+$userContext = getUserContext();
+$lti_data = $userContext['lti_data'];
 $JSON_LTI_DATA = $lti_data ? json_encode($lti_data) : 'null';
 // print_r($game_path);
 // exit;

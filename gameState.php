@@ -5,7 +5,8 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-session_start();
+// Use __DIR__ to locate auth.php in the root, resolving symlinks correctly
+require_once __DIR__ . '/auth.php';
 
 /**
  * Get the current user's identifier (email or unique ID).
@@ -13,22 +14,16 @@ session_start();
  * @return string|null User identifier or null if not found.
  */
 function getUserIdentifier() {
-    // Preferred method: Shibboleth mail (email)
-    if (isset($_SERVER['mail'])) {
-        return $_SERVER['mail'];
+    $user = getUserContext();
+    
+    // Priority: Email > ID > Anonymous
+    // Note: auth.php now prioritizes mail as 'id' for Shibboleth users too.
+    if (!empty($user['email']) && $user['email'] !== 'anonymous@example.com') {
+        return $user['email'];
     }
-    // Fallback: Shibboleth common name (cn)
-    if (isset($_SERVER['cn'])) {
-        return $_SERVER['cn'];
+    if (!empty($user['id']) && $user['id'] !== 'default_user') {
+        return $user['id'];
     }
-    // Fallback for LTI simulation or LTI launch
-    if (isset($_SESSION['lti_data']['lis_person_contact_email_primary'])) {
-        return $_SESSION['lti_data']['lis_person_contact_email_primary'];
-    }
-    if (isset($_SESSION['lti_data']['user_id'])) {
-        return $_SESSION['lti_data']['user_id'];
-    }
-    // Default or anonymous user if no identifier found
     return 'anonymous_user';
 }
 

@@ -3,22 +3,22 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-session_start();
+require_once 'auth.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['game_file'])) {
 
-    // 1. Get user identity
-    $user_id = 'default_user'; // Default value
-    if (isset($_SERVER['cn'])) {
-        // Preferred method: Shibboleth common name
-        $user_id = $_SERVER['cn'];
-    } elseif (isset($_SESSION['lti_data']['user_id'])) {
-        // Fallback for LTI simulation
-        $user_id = $_SESSION['lti_data']['user_id'];
-    }
+    // 1. Get user identity via auth module
+    $user_id = getSafeUserId();
 
-    // Sanitize user_id to prevent directory traversal issues
-    $user_id = preg_replace('/[^a-zA-Z0-9_-]/', '', $user_id);
+    if (empty($user_id) || $user_id === 'default_user') {
+        // Optional: Enforce stricter check? 
+        // For now, we allow default_user if that's the intention, but usually uploads require auth.
+        if ($user_id === 'default_user' && !isset($_SESSION['lti_data'])) {
+             // Decide policy: Allow anonymous uploads? 
+             // Previous code allowed 'default_user'. I'll keep it but usually we want a real user.
+        }
+    }
+    
     if (empty($user_id)) {
         die("Error: Could not determine a valid user identity.");
     }
