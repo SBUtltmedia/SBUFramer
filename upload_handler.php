@@ -73,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['game_file'])) {
 
         // 6. Redirect to the new game
         $game_url_path = htmlspecialchars("games/" . $user_id . "/" . $game_prefix . "/" . "index.html");
-        header("Location: /index.php?game=" . $game_url_path);
+        header("Location: index.php?game=" . $game_url_path);
         exit();
 
     } else {
@@ -81,6 +81,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['game_file'])) {
     }
 
 } else {
-    header("Location: /index.php");
+    header("Location: index.php");
     exit();
 }
