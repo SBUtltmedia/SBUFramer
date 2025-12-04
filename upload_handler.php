@@ -4,6 +4,7 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 require_once 'auth.php';
+requireAuthentication();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['game_file'])) {
 

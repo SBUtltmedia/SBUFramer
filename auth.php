@@ -98,4 +98,30 @@ function getSafeUserEmail() {
     // Allow @ and . but sanitize others
     return preg_replace('/[^a-zA-Z0-9_.@-]/', '_', $user['email']);
 }
+
+/**
+ * Enforces authentication.
+ * If no valid LTI session and no Shibboleth identity are found,
+ * redirects the user to the Shibboleth login page.
+ */
+function requireAuthentication() {
+    // 1. Allow if LTI session is active
+    if (isset($_SESSION['lti_data']) && !empty($_SESSION['lti_data'])) {
+        return;
+    }
+
+    // 2. Allow if Shibboleth identity is present (covers DDEV if configured via .htaccess)
+    if ((isset($_SERVER['cn']) && !empty($_SERVER['cn'])) || (isset($_SERVER['mail']) && !empty($_SERVER['mail']))) {
+        return;
+    }
+
+    // 3. Redirect to Shibboleth Login
+    $server = $_SERVER['SERVER_NAME'] ?? $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $request_uri = $_SERVER['REQUEST_URI'] ?? '/';
+    // Force https for shib target typically
+    $target = "https://{$server}{$request_uri}";
+    
+    header('Location: /shib/?shibtarget=' . rawurlencode($target));
+    exit;
+}
 ?>
