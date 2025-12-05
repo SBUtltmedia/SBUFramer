@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['game_file'])) {
 
         // 5. Create a symlink to the master gameState.php
         // The relative path from /upload/<user>/<game>/saves to the root is ../../../../
-        $symlink_target = '../../../../gameState.php';
+        $symlink_target = getcwd() . '/gameState.php';
         $symlink_name = $saves_dir . 'gameState.php';
         if (!file_exists($symlink_name)) {
             if (!symlink($symlink_target, $symlink_name)) {
