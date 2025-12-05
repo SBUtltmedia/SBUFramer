@@ -1,0 +1,217 @@
+{
+    "globalUserState": [
+        {
+            "~p": [
+                true,
+                true,
+                true,
+                true
+            ],
+            "~q": [
+                true,
+                true,
+                true,
+                true
+            ],
+            "~pv~q": [
+                true,
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "~p": [
+                true,
+                true,
+                true,
+                true
+            ],
+            "(p->q)": [
+                true,
+                true,
+                true,
+                true
+            ],
+            "(q->~p)": [
+                true,
+                true,
+                true,
+                true
+            ],
+            "(q->~p)^(p->q)": [
+                true,
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "~q": [
+                true,
+                true,
+                true,
+                true
+            ],
+            "p->~q": [
+                true,
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "~p": [
+                true,
+                true,
+                true,
+                true
+            ],
+            "~p^p": [
+                true,
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "~p": [
+                true,
+                true,
+                true,
+                true
+            ],
+            "~q": [
+                true,
+                true,
+                true,
+                true
+            ],
+            "~p->~~q": [
+                true,
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "~p": [
+                true,
+                true,
+                true,
+                true
+            ],
+            "q->~~p": [
+                true,
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "~q": [
+                true,
+                true,
+                true,
+                true
+            ],
+            "(p->q)": [
+                true,
+                true,
+                true,
+                true
+            ],
+            "(p->~q)": [
+                true,
+                true,
+                true,
+                true
+            ],
+            "(p->~q)v(p->q)": [
+                true,
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "~p": [
+                true,
+                true,
+                true,
+                true
+            ],
+            "~pvq": [
+                true,
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "~p": [
+                true,
+                true,
+                true,
+                true
+            ],
+            "(~p->q)": [
+                true,
+                true,
+                true,
+                true
+            ],
+            "((~p->q)v(~p->q))": [
+                true,
+                true,
+                true,
+                true
+            ],
+            "((~p->q)v(~p->q))->q": [
+                true,
+                true,
+                true,
+                true
+            ]
+        },
+        {
+            "~p": [
+                false,
+                false,
+                false,
+                false
+            ],
+            "~q": [
+                true,
+                true,
+                true,
+                true
+            ],
+            "(~p->q)": [
+                true,
+                true,
+                true,
+                true
+            ],
+            "(p->~q)": [
+                true,
+                true,
+                true,
+                true
+            ],
+            "((~p->q)v(p->~q))": [
+                true,
+                true,
+                true,
+                true
+            ],
+            "(~p->q)->((~p->q)v(p->~q))": [
+                true,
+                true,
+                true,
+                true
+            ]
+        }
+    ],
+    "isSubmitted": false
+}

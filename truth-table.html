@@ -24,8 +24,9 @@
             justify-content: center;
         }
 
-        .score{
-            display: none;
+        /* Helper to hide elements */
+        .hidden-force {
+            display: none !important;
         }
 
         /* --- Custom Scrollbar --- */
@@ -44,13 +45,11 @@
 
         /* --- Atomic Cell Styling --- */
         
-        /* CHANGED to auto so columns can expand to fit long formulas */
         .truth-table {
             border-collapse: separate;
             border-spacing: 0;
             table-layout: auto; 
-            /* width: 100%;  Removed 100% width so it doesn't stretch unnecessarily */
-            margin: 0 auto; /* Center the table if it's smaller than container */
+            margin: 0 auto; 
         }
 
         /* Base Cell */
@@ -59,19 +58,14 @@
             padding: 0.25rem; 
             border: 1px solid #334155;
             text-align: center;
-            
-            /* FIXED HEIGHT ONLY */
             height: 3.5rem; 
-            
-            /* ADDED: Minimum width to prevent "cramped" look on simple cols */
             min-width: 6rem; 
-            
             transition: background-color 0.15s ease;
             position: relative;
             box-sizing: border-box; 
         }
 
-        /* Headers - INCREASED SIZE & CONTRAST */
+        /* Headers */
         .truth-table th {
             font-family: 'JetBrains Mono', monospace;
             padding: 0.75rem 1rem; 
@@ -83,8 +77,6 @@
             text-transform: uppercase;
             letter-spacing: 0.05em;
             text-shadow: 0 0 15px rgba(255, 255, 255, 0.2); 
-            
-            /* ADDED: Minimum width to match TD */
             min-width: 6rem;
             white-space: nowrap;
             box-sizing: border-box;
@@ -95,7 +87,7 @@
             border-color: #475569;
         }
 
-        /* The "Chip" look - INCREASED SIZE */
+        /* The "Chip" look */
         .cell-content {
             display: inline-flex;
             align-items: center;
@@ -104,7 +96,7 @@
             height: 2.25rem;  
             border-radius: 0.5rem;
             font-weight: 800;
-            font-size: 1.25rem; /* CHANGED: Larger T/F (was 1rem) */
+            font-size: 1.25rem;
             transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
             user-select: none;
         }
@@ -134,6 +126,21 @@
             border: 1px solid rgba(251, 113, 133, 0.3);
             text-shadow: 0 0 8px rgba(251, 113, 133, 0.6);
             box-shadow: 0 0 10px rgba(251, 113, 133, 0.1);
+        }
+
+        /* NEW: ERROR STYLE for Review Mode */
+        .val-error .cell-content {
+            background-color: rgba(220, 38, 38, 0.25); 
+            color: #ffffff; 
+            border: 2px solid #ef4444;
+            text-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+            transform: scale(1.05);
+        }
+        /* Override base TD for error to make it pop */
+        .truth-table td.val-error-cell {
+            border-color: #ef4444;
+            background-color: rgba(69, 10, 10, 0.3);
         }
 
         .val-null .cell-content {
@@ -170,7 +177,6 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            /* Ensure scaler has dimensions but doesn't force overflow */
             width: 100vw;
             height: 100vh;
         }
@@ -183,11 +189,9 @@
             overflow: visible; 
             display: flex;
             flex-direction: column;
-            
-            /* --- FIXED WIDTH & HEIGHT to prevent Jitter (COMPACTED) --- */
-            width: 820px;  /* Reduced from 1050px */
+            width: 820px;  
             max-width: 95vw; 
-            min-height: 550px; /* Reduced from 700px */
+            min-height: 550px; 
         }
 
         .formula-box {
@@ -197,7 +201,6 @@
             box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.5);
             position: relative;
             overflow: hidden;
-            /* Fixed height to prevent jitter */
             min-height: 4rem;
             display: flex;
             align-items: center;
@@ -213,25 +216,39 @@
         .nav-btn {
             background-image: linear-gradient(to bottom, #334155, #1e293b);
             border: 1px solid #475569;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3); /* Stronger shadow */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
             transition: all 0.2s ease;
-            
-            /* ADDED: Slightly larger text and padding */
             font-size: 0.85rem; 
             padding: 0.5rem 1rem;
-            min-width: 6rem; /* Ensure they have a nice width */
+            min-width: 6rem;
             justify-content: center;
         }
         
         .nav-btn:hover:not(:disabled) {
-            border-color: #38bdf8; /* Cyan border on hover */
+            border-color: #38bdf8; 
             transform: translateY(-2px);
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); /* Cyan Glow on hover */
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); 
             color: #fff;
         }
 
         .nav-btn:active:not(:disabled) { transform: translateY(0); }
         .nav-btn:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(100%); }
+
+        /* Submit Button Specifics */
+        .submit-btn {
+            background-image: linear-gradient(to bottom, #10b981, #059669);
+            border-color: #059669;
+            /* Added smooth scaling for the floating effect */
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .submit-btn:hover:not(:disabled) {
+            border-color: #34d399;
+            box-shadow: 0 10px 25px -5px rgba(52, 211, 153, 0.6);
+            /* Removed transform: translateY(-4px) scale(1.05); */
+        }
+        .submit-btn:active:not(:disabled) {
+            /* Removed transform: translateY(0) scale(0.95); */
+        }
 
         .progress-track {
             height: 4px;
@@ -253,10 +270,24 @@
 <body class="text-slate-100">
 
     <!-- SCALING WRAPPER -->
-    <div id="game-scaler">
+    <!-- Added 'relative' to ensure absolute children position correctly if needed, though transform handles it -->
+    <div id="game-scaler" class="relative">
         
+        <!-- THANK YOU SCREEN (Hidden by default) -->
+        <div id="thank-you-screen" class="glass-panel rounded-2xl p-6 shadow-2xl relative items-center justify-center hidden-force text-center">
+            <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight text-white mb-6 drop-shadow-[0_0_25px_rgba(255,255,255,0.4)]">
+                Thank You!
+            </h1>
+            <p class="text-slate-300 text-xl mb-8">
+                You have completed the test.
+            </p>
+            <p class="text-slate-500 text-sm">
+                Refresh the page to see your results.
+            </p>
+        </div>
+
         <!-- Main Game Container -->
-        <div class="glass-panel rounded-2xl p-6 shadow-2xl relative">
+        <div id="game-container" class="glass-panel rounded-2xl p-6 shadow-2xl relative">
             
             <!-- Decorative bg glow -->
             <div class="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-1 bg-cyan-500/20 blur-xl"></div>
@@ -271,18 +302,22 @@
                     <span class="text-slate-500">Click to toggle</span> 
                     <span class="font-bold text-emerald-400" style="text-shadow: 0 0 10px rgba(52, 211, 153, 0.4)">T</span> <span class="text-slate-500">/</span> <span class="font-bold text-rose-400" style="text-shadow: 0 0 10px rgba(251, 113, 133, 0.4)">F</span>.
                 </p>
-                <p class="text-slate-400 max-w-2xl mx-auto text-sm leading-relaxed">
+                <p id="instruction-text" class="text-slate-400 max-w-2xl mx-auto text-sm leading-relaxed">
                     Click <span class="font-bold text-white">SUBMIT</span> to record your answer.
                 </p>
             </header>
 
             <!-- Stats & Controls Bar -->
-            <div class="flex flex-col md:flex-row justify-center items-center bg-slate-800/40 rounded-xl p-3 mb-5 border border-slate-700/50 backdrop-blur-sm shrink-0 min-w-[500px]">                <!-- Global Score (Fixed Width container to prevent jitter) -->
-                <div id="global-score" class="score text-base font-semibold text-slate-200 mb-2 md:mb-0 md:ml-2 w-64">
-                    Global Score: <span class="text-slate-500 font-mono">0%</span>
+            <!-- ADDED: relative class to allow absolute positioning of score -->
+            <div class="relative flex flex-col md:flex-row justify-center items-center bg-slate-800/40 rounded-xl p-3 mb-5 border border-slate-700/50 backdrop-blur-sm shrink-0 min-w-[500px]">                
+                
+                <!-- Global Score -->
+                <!-- CHANGED: Absolute positioning on MD to keep center flow clean. Removed w-64 placeholder logic -->
+                <div id="global-score-container" class="score text-base font-semibold text-slate-200 mb-2 md:mb-0 md:absolute md:left-6 md:top-1/2 md:-translate-y-1/2 hidden-force">
+                    Global Score: <span id="score-text" class="text-slate-500 font-mono">0%</span>
                 </div>
-
-                <!-- Navigation -->
+                
+                <!-- Navigation (Centered automatically by flex parent now that score is absolute) -->
                      <div class="flex items-center gap-4">
                         <button id="prev-btn" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-200 flex items-center gap-2">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
@@ -313,33 +348,28 @@
             </div>
         
             <!-- Tables Container -->
-            <div id="tables-container" class="flex flex-col xl:flex-row xl:justify-center xl:space-x-6 space-y-6 xl:space-y-0 overflow-visible p-1">
-                <!-- Table 1 -->
-                <div class="overflow-x-auto rounded-xl border border-slate-700 shadow-xl bg-slate-900/80">
-                    <table id="truth-table-1" class="truth-table">
-                        <thead id="table-header-1">
-                            <!-- Header 1 -->
-                        </thead>
-                        <tbody id="table-body-1">
-                            <!-- Body 1 -->
-                        </tbody>
+            <div class="flex flex-col space-y-4">
+                <div class="w-full overflow-x-auto pb-2">
+                    <table id="truth-table-1" class="truth-table mx-auto">
+                        <thead id="table-header-1"></thead>
+                        <tbody id="table-body-1"></tbody>
                     </table>
                 </div>
                 
-                <!-- Table 2 -->
                 <div id="table-container-2" class="overflow-x-auto rounded-xl border border-slate-700 shadow-xl bg-slate-900/80 hidden">
                     <table id="truth-table-2" class="truth-table">
-                        <thead id="table-header-2">
-                            <!-- Header 2 -->
-                        </thead>
-                        <tbody id="table-body-2">
-                            <!-- Body 2 -->
-                        </tbody>
+                        <thead id="table-header-2"></thead>
+                        <tbody id="table-body-2"></tbody>
                     </table>
                 </div>
             </div>
 
-        </div>
+            <!-- Submit All Button -->
+            <!-- MOVED INSIDE CONTAINER and adjusted bottom spacing to -bottom-12 to move it up -->
+            <button id="submit-all-btn" class="absolute -bottom-12 left-1/2 -translate-x-1/2 submit-btn px-5 py-2 rounded-xl text-sm font-bold text-white flex items-center gap-2 shadow-2xl z-50 hidden-force whitespace-nowrap">
+                            Submit All Answers
+                        </button>        </div>
+
     </div>
 
     <!-- JS Logic -->
@@ -349,8 +379,10 @@
         // ==========================================
         function fitToScreen() {
             const scaler = document.getElementById('game-scaler');
-            const container = scaler.querySelector('.glass-panel');
+            const container = scaler.querySelector('.glass-panel:not(.hidden-force)');
             
+            if (!container) return; // safety
+
             // Reset transforms to get natural size
             scaler.style.transform = 'none';
             
@@ -431,6 +463,7 @@
             
             let globalUserState = {}; 
             let globalSolutions = {};
+            let isSubmitted = false; // NEW FLAG
 
             let solutions = {};
             let connectiveNames = [];
@@ -438,7 +471,14 @@
             let userState = {}; 
             let currentProblemIndex = 0;
             
-            const globalScoreDisplay = document.getElementById('global-score');
+            // DOM Elements
+            const gameContainer = document.getElementById('game-container');
+            const thankYouScreen = document.getElementById('thank-you-screen');
+            const globalScoreContainer = document.getElementById('global-score-container');
+            // const scorePlaceholder = document.getElementById('score-placeholder'); // REMOVED
+            const scoreText = document.getElementById('score-text');
+            const instructionText = document.getElementById('instruction-text');
+            
             const header1 = document.getElementById('table-header-1');
             const body1 = document.getElementById('table-body-1');
             const tableContainer2 = document.getElementById('table-container-2');
@@ -447,6 +487,7 @@
             const wffDisplay = document.getElementById('wff-display');
             const prevBtn = document.getElementById('prev-btn');
             const nextBtn = document.getElementById('next-btn');
+            const submitAllBtn = document.getElementById('submit-all-btn'); // NEW BTN
             const problemNumSpan = document.getElementById('problem-num');
             const problemTotalSpan = document.getElementById('problem-total');
             const progressBarFill = document.getElementById('progress-bar-fill');
@@ -535,7 +576,8 @@
 
 
                 prevBtn.disabled = (problemNum === 1);
-                nextBtn.disabled = true;
+                
+                // Logic for Next/Submit buttons comes later in checkCompletion
 
                 const wffString = problemSet[currentProblemIndex];
                 
@@ -557,7 +599,7 @@
                 }
                 userState = globalUserState[currentProblemIndex];
 
-                const MAX_INTERACTIVE_COLS_ONE_TABLE = 5; 
+                const MAX_INTERACTIVE_COLS_ONE_TABLE = 20; 
                 let connectiveNames1 = [];
                 let connectiveNames2 = [];
 
@@ -575,6 +617,22 @@
             async function init() {
                 const { connectiveNames1, connectiveNames2 } = await loadGameConfig();
                 
+                // Determine Mode
+                if (isSubmitted) {
+                    // Review Mode Styling
+                    instructionText.innerHTML = '<span class="text-rose-400 font-bold">REVIEW MODE</span>: Incorrect answers are marked in <span class="font-bold text-rose-500">RED</span>.';
+                    globalScoreContainer.classList.remove('hidden-force');
+                    
+                    // scorePlaceholder removed, no action needed
+                    
+                    submitAllBtn.classList.add('hidden-force');
+                } else {
+                    // Play Mode Styling
+                    instructionText.innerHTML = 'Click <span class="font-bold text-white">SUBMIT</span> to record your answer.';
+                    globalScoreContainer.classList.add('hidden-force');
+                    // scorePlaceholder removed, no action needed
+                }
+
                 renderTable(header1, body1, connectiveNames1, true); 
                 
                 if (connectiveNames2 && connectiveNames2.length > 0) {
@@ -585,8 +643,8 @@
                 }
                 
                 checkCompletion();
-                updateGlobalScore();
-                // Call scale logic whenever table changes size
+                updateGlobalScore(); // Always calc score, visibility controlled by CSS
+                
                 setTimeout(fitToScreen, 50);
             }
 
@@ -643,34 +701,57 @@
                 const td = document.createElement('td');
                 const currentValue = userState[connectiveName][rowIndex];
                 
-                // Create the inner styling span
                 const span = document.createElement('span');
                 span.className = 'cell-content';
 
-                // Add animation class if not null to trigger pop on initial load or change
-                if (currentValue !== null) {
-                    span.classList.add('animate-pop');
-                }
+                // --- REVIEW MODE LOGIC ---
+                if (isSubmitted) {
+                    const correctValue = solutions[connectiveName][rowIndex];
+                    const isCorrect = (currentValue === correctValue);
+                    
+                    // Style
+                    if (currentValue === null) {
+                        span.textContent = '?';
+                        td.className = 'val-null interactive-cell cursor-default';
+                    } else {
+                        span.textContent = currentValue ? 'T' : 'F';
+                        if (isCorrect) {
+                             // Standard coloring for correct
+                            td.className = (currentValue ? 'val-true' : 'val-false') + ' interactive-cell cursor-default';
+                        } else {
+                            // RED ERROR for incorrect
+                            td.className = 'val-error val-error-cell interactive-cell cursor-default';
+                        }
+                    }
+                    // No Click Listener in Review Mode
+                } 
+                // --- PLAY MODE LOGIC ---
+                else {
+                    if (currentValue !== null) {
+                        span.classList.add('animate-pop');
+                    }
 
-                if (currentValue === null) {
-                    span.textContent = '?';
-                    td.className = 'val-null interactive-cell';
-                } else {
-                    span.textContent = currentValue ? 'T' : 'F';
-                    td.className = (currentValue ? 'val-true' : 'val-false') + ' interactive-cell';
+                    if (currentValue === null) {
+                        span.textContent = '?';
+                        td.className = 'val-null interactive-cell';
+                    } else {
+                        span.textContent = currentValue ? 'T' : 'F';
+                        td.className = (currentValue ? 'val-true' : 'val-false') + ' interactive-cell';
+                    }
+                    
+                    // Attach Click Listener
+                    td.dataset.connective = connectiveName;
+                    td.dataset.row = rowIndex;
+                    td.addEventListener('click', handleCellClick);
                 }
                 
                 td.appendChild(span);
-
-                td.dataset.connective = connectiveName;
-                td.dataset.row = rowIndex;
-                
-                td.addEventListener('click', handleCellClick);
                 return td;
             }
             
             function handleCellClick(e) {
-                // IMPORTANT: Target the TD, not the SPAN inside it
+                if (isSubmitted) return; // double check guard
+
                 const cell = e.currentTarget; 
                 const connectiveName = cell.dataset.connective;
                 const rowIndex = parseInt(cell.dataset.row, 10);
@@ -686,12 +767,9 @@
                 
                 userState[connectiveName][rowIndex] = newValue;
                 
-                // Update UI: Need to update the class of TD and text of the inner SPAN
                 const span = cell.querySelector('.cell-content');
                 span.textContent = newValue ? 'T' : 'F';
                 
-                // Trigger animation
-                // Remove class and re-add to restart animation
                 span.classList.remove('animate-pop');
                 void span.offsetWidth; // trigger reflow
                 span.classList.add('animate-pop');
@@ -704,10 +782,20 @@
             }
 
             async function saveState() {
-                CanvasGame.save({ globalUserState: globalUserState });
+                CanvasGame.save({ 
+                    globalUserState: globalUserState,
+                    isSubmitted: isSubmitted
+                });
             }
 
             function checkCompletion() {
+                if (isSubmitted) {
+                    nextBtn.disabled = false; // Allow navigation in review
+                    submitAllBtn.classList.add('hidden-force');
+                    nextBtn.classList.remove('hidden-force'); // Ensure nextBtn is visible in review mode
+                    return;
+                }
+
                 let allFilled = true;
                 connectiveNames.forEach(name => {
                     const col = userState[name];
@@ -719,48 +807,96 @@
                 const isLastProblem = (currentProblemIndex === problemSet.length - 1);
                 
                 if (isLastProblem) {
-                   nextBtn.disabled = true; 
+                   nextBtn.disabled = true; // Always disable Next on the last problem
+                   nextBtn.classList.remove('hidden-force'); // Ensure it's visible
+
+                   // Show Submit Button only on last problem
+                   submitAllBtn.classList.remove('hidden-force');
+                   submitAllBtn.disabled = !allFilled; // Only enable if full
                 } else {
+                   submitAllBtn.classList.add('hidden-force'); // Hide submit otherwise
+                   nextBtn.classList.remove('hidden-force'); // Ensure Next is visible
                    nextBtn.disabled = !allFilled;
                 }
             }
 
+            // SUBMIT LOGIC
+            submitAllBtn.addEventListener('click', () => {
+                isSubmitted = true;
+                saveState();
+                
+                // Switch Screens
+                gameContainer.classList.add('hidden-force');
+                thankYouScreen.classList.remove('hidden-force');
+                
+                // Re-trigger scale to fit the Thank You screen
+                setTimeout(fitToScreen, 50);
+            });
+
             function updateGlobalScore() {
+                // Calculate score based on ALL problems (assuming solutions are consistent)
+                // Note: We need solutions for all problems to be accurate. 
+                // In this simple app, we can calculate them on the fly if needed, 
+                // but let's stick to checking what we have in globalSolutions.
+                
                 let totalAttemptedCells = 0;
                 let totalCorrectCells = 0;
+                let totalPossibleCells = 0;
 
-                Object.keys(globalUserState).forEach(pIndex => {
-                    const uState = globalUserState[pIndex];
-                    const sol = globalSolutions[pIndex];
+                // Iterate through all problems in problemSet to get true score
+                problemSet.forEach((wff, pIdx) => {
+                    // Calculate solution for this problem on demand if missing (for robust score)
+                    // But to keep it simple and performant, we use what's loaded or visited.
+                    // For "Review Mode" to be accurate, we really need to check everything.
+                    // Let's rely on globalUserState.
                     
-                    if (!uState || !sol) return;
+                    const uState = globalUserState[pIdx];
+                    if (uState) {
+                         // We need solution for this specific pIdx. 
+                         // If user skipped around, it might be in globalSolutions.
+                         // If not, we must calc it.
+                         let sol = globalSolutions[pIdx];
+                         if (!sol) {
+                             // Calc temporarily
+                             const tempNames = parseConstituents(wff).filter(n => n !== 'p' && n !== 'q');
+                             // We need to set pValues/qValues logic inside evaluateWFF or make it pure.
+                             // evaluateWFF uses global pValues. Safe.
+                             // calculateSolutions uses global pValues. Safe.
+                             sol = calculateSolutions(tempNames);
+                         }
 
-                    Object.keys(uState).forEach(colName => {
-                        const userCol = uState[colName];
-                        const solCol = sol[colName];
-                        
-                        if (solCol) {
-                            userCol.forEach((val, idx) => {
-                                if (val !== null) {
-                                    totalAttemptedCells++;
-                                    if (val === solCol[idx]) {
-                                        totalCorrectCells++;
+                         Object.keys(uState).forEach(colName => {
+                            const userCol = uState[colName];
+                            const solCol = sol[colName];
+                            
+                            if (solCol) {
+                                userCol.forEach((val, idx) => {
+                                    totalPossibleCells++;
+                                    if (val !== null) {
+                                        totalAttemptedCells++;
+                                        if (val === solCol[idx]) {
+                                            totalCorrectCells++;
+                                        }
                                     }
-                                }
-                            });
-                        }
-                    });
+                                });
+                            }
+                        });
+                    }
                 });
 
                 let pct = 0;
                 let normalizedScore = 0;
 
+                // If in review mode, we base score on total correctness vs total possible
+                // But typically user wants score based on what they filled.
+                // Let's stick to current logic: correct / attempted.
                 if (totalAttemptedCells > 0) {
                     pct = Math.round((totalCorrectCells / totalAttemptedCells) * 100);
                     normalizedScore = totalCorrectCells / totalAttemptedCells;
                 }
                 
-                globalScoreDisplay.innerHTML = `Global Score: <span class=" score text-cyan-400 font-bold font-mono">${pct}%</span> <span class="text-sm text-slate-500 ml-2 font-mono">(${totalCorrectCells}/${totalAttemptedCells})</span>`;
+                scoreText.textContent = `${pct}%`;
+                globalScoreContainer.innerHTML = `Global Score: <span class="text-cyan-400 font-bold font-mono">${pct}%</span> <span class="text-sm text-slate-500 ml-2 font-mono">(${totalCorrectCells}/${totalAttemptedCells})</span>`;
 
                 CanvasGame.notifyParent('score_update', { score: normalizedScore });
             }
@@ -783,9 +919,15 @@
 
             CanvasGame.onLoad((savedState) => {
                 stateLoaded = true;
-                if (savedState && savedState.globalUserState) {
-                    console.log("Restoring game state...");
-                    globalUserState = savedState.globalUserState;
+                if (savedState) {
+                    if (savedState.globalUserState) {
+                        console.log("Restoring game state...");
+                        globalUserState = savedState.globalUserState;
+                    }
+                    if (savedState.isSubmitted) {
+                        console.log("Game was submitted.");
+                        isSubmitted = true;
+                    }
                 } else {
                     console.log("No saved state found. Starting fresh.");
                 }
