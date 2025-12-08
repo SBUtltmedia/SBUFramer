@@ -395,8 +395,8 @@
 
             <!-- Submit All Button Container -->
             <!-- Wrapped in full width flex container for perfect centering -->
-            <div class="absolute -bottom-16 left-0 w-full flex justify-center z-50 pointer-events-none">
-                <button id="submit-all-btn" class="submit-btn px-8 py-4 rounded-2xl text-xl font-bold text-white flex items-center gap-3 shadow-2xl hidden-force whitespace-nowrap pointer-events-auto">
+            <div class="absolute -bottom-12 left-0 w-full flex justify-center z-50 pointer-events-none">
+                <button id="submit-all-btn" class="submit-btn px-8 rounded-2xl text-xl font-bold text-white flex items-center gap-3 shadow-2xl hidden-force whitespace-nowrap pointer-events-auto">
                     Submit
                 </button>
             </div>
@@ -413,9 +413,9 @@
             const scaler = document.getElementById('game-scaler');
             const tablesWrapper = document.getElementById('tables-container-wrapper');
 
-            // Desired Base Dimensions for the entire game area
-            const baseWidth = 1920;
-            const baseHeight = 1080;
+            // Desired Base Dimensions - Adjusted to make content appear slightly larger
+            const baseWidth = 2000; // Was 2200
+            const baseHeight = 1125;  // Was 1238 (approx 16:9)
             
             // Available Window Dimensions
             const windowWidth = window.innerWidth;
@@ -439,8 +439,8 @@
 
             if (tablesWrapper) {
                 // Approximate available width for tables inside glass-panel
-                // glass-panel is 1400px wide. Deduct padding and some buffer.
-                const availableTableWidth = 1300; 
+                // Adjusted for new base size
+                const availableTableWidth = 1350; // Was 1500 
 
                 // Measure the actual rendered width of the tables
                 // We need to measure after the overall scale is temporarily removed for correct intrinsic width
