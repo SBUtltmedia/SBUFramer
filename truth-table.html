@@ -233,9 +233,13 @@
             background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.5), transparent);
         }
 
+        /* UPDATED: .nav-btn
+           Using a lighter, matte grey (Slate/Gray mix) to avoid the "bluish" tint 
+           but also avoiding the heavy dark grey.
+        */
         .nav-btn {
-            background-image: linear-gradient(to bottom, #334155, #1e293b);
-            border: 1px solid #475569;
+            background-image: linear-gradient(to bottom, #334155, #1e293b); /* Reverted to original dark blue-grey */
+            border: 1px solid #475569; /* Reverted to original border color */
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
             transition: all 0.2s ease;
             font-size: 1.2rem; /* Scaled up */
@@ -245,14 +249,30 @@
         }
         
         .nav-btn:hover:not(:disabled) {
-            border-color: #38bdf8; 
-            transform: translateY(-2px);
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); 
+            border-color: #38bdf8; /* Cyan border on hover */
+            transform: translateY(-2px); /* Movement on hover */
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); /* Cyan Glow on hover */
             color: #fff;
         }
-        /* ... existing submit btn styles ... */
+
+        /* SPECIFIC DISABLED STATE: "Like you can't click it" */
+        .nav-btn:disabled {
+            opacity: 0.4;                 /* Faded out */
+            cursor: not-allowed;          /* No hand cursor */
+            filter: grayscale(100%);      /* Remove any remaining color */
+            background-image: none;       /* Flat background */
+            background-color: #262626;    /* Dark base */
+            border-color: #404040;        /* Dark border */
+            color: #525252;               /* Dimmed text */
+            box-shadow: none;             /* No depth */
+            transform: none !important;   /* No movement */
+        }
         
         /* Submit Button Specifics - Updated scaling */
+        .submit-btn {
+             /* ... existing bg ... */
+             font-size: 1.5rem; /* Explicitly set for submit - Increased size */
+        }
         .submit-btn:active:not(:disabled) {
             /* Removed transform property */
         }
@@ -269,7 +289,7 @@
             }
             70% {
                 transform: scale(1.02);
-                box-shadow: 0 0 0 15px rgba(16, 185, 129, 0);
+                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); /* Reduced spread radius */
             }
             100% {
                 transform: scale(1);
@@ -375,9 +395,9 @@
 
             <!-- Submit All Button Container -->
             <!-- Wrapped in full width flex container for perfect centering -->
-            <div class="absolute -bottom-20 left-0 w-full flex justify-center z-50 pointer-events-none">
+            <div class="absolute -bottom-16 left-0 w-full flex justify-center z-50 pointer-events-none">
                 <button id="submit-all-btn" class="submit-btn px-8 py-4 rounded-2xl text-xl font-bold text-white flex items-center gap-3 shadow-2xl hidden-force whitespace-nowrap pointer-events-auto">
-                    Submit All Answers
+                    Submit
                 </button>
             </div>
         </div>
@@ -506,7 +526,9 @@
             
             let globalUserState = {}; 
             let globalSolutions = {};
-            let isSubmitted = false; // NEW FLAG
+            let isSubmitted = false; 
+            let currentProblemSubmitted = false;
+            let problemSubmissionStatus = {}; 
 
             let solutions = {};
             let connectiveNames = [];
@@ -641,6 +663,13 @@
                     globalUserState[currentProblemIndex] = initialState;
                 }
                 userState = globalUserState[currentProblemIndex];
+                
+                // Restore local submission state for this specific problem
+                if (isSubmitted) {
+                    currentProblemSubmitted = true; 
+                } else {
+                    currentProblemSubmitted = problemSubmissionStatus[currentProblemIndex] || false;
+                }
 
                 const MAX_INTERACTIVE_COLS_ONE_TABLE = 20; 
                 let connectiveNames1 = [];
@@ -749,7 +778,8 @@
                 span.className = 'cell-content';
 
                 // --- REVIEW MODE LOGIC ---
-                if (isSubmitted) {
+                // Trigger if GLOBAL submitted OR LOCAL problem submitted
+                if (isSubmitted || currentProblemSubmitted) {
                     const correctValue = solutions[connectiveName][rowIndex];
                     const isCorrect = (currentValue === correctValue);
                     
@@ -767,7 +797,7 @@
                             td.className = 'val-error val-error-cell interactive-cell cursor-default';
                         }
                     }
-                    // No Click Listener in Review Mode
+                    // No Click Listener in Review Mode (Global or Local)
                 } 
                 // --- PLAY MODE LOGIC ---
                 else {
@@ -794,7 +824,7 @@
             }
             
             function handleCellClick(e) {
-                if (isSubmitted) return; // double check guard
+                if (isSubmitted || currentProblemSubmitted) return; // Prevent clicks if globally or locally submitted
 
                 const cell = e.currentTarget; 
                 const connectiveName = cell.dataset.connective;
@@ -826,17 +856,24 @@
             }
 
             async function saveState() {
+                // Update current problem status in the map before saving
+                problemSubmissionStatus[currentProblemIndex] = currentProblemSubmitted;
+
                 CanvasGame.save({ 
                     globalUserState: globalUserState,
-                    isSubmitted: isSubmitted
+                    isSubmitted: isSubmitted,
+                    problemSubmissionStatus: problemSubmissionStatus
                 });
             }
 
             function checkCompletion() {
                 if (isSubmitted) {
-                    nextBtn.disabled = false; // Allow navigation in review
-                    submitAllBtn.classList.add('hidden-force');
-                    nextBtn.classList.remove('hidden-force'); // Ensure nextBtn is visible in review mode
+                    // Global Review Mode
+                    prevBtn.classList.remove('hidden-force');
+                    nextBtn.classList.remove('hidden-force');
+                    prevBtn.disabled = (currentProblemIndex === 0);
+                    nextBtn.disabled = (currentProblemIndex === problemSet.length - 1);
+                    submitAllBtn.classList.add('hidden-force'); 
                     return;
                 }
 
@@ -848,35 +885,80 @@
                     }
                 });
                 
+                const isFirstProblem = (currentProblemIndex === 0);
                 const isLastProblem = (currentProblemIndex === problemSet.length - 1);
                 
-                if (isLastProblem) {
-                   nextBtn.disabled = true; // Always disable Next on the last problem
-                   nextBtn.classList.remove('hidden-force'); // Ensure it's visible
-
-                   // Show Submit Button only on last problem
-                   // Remove hidden-force from button, but logic is slightly different now that button is wrapped.
-                   // The hidden-force class is ON THE BUTTON. So removing it makes the button appear inside the wrapper.
-                   submitAllBtn.classList.remove('hidden-force');
-                   submitAllBtn.disabled = !allFilled; // Only enable if full
+                // Prev Button
+                if (isFirstProblem) {
+                    prevBtn.classList.add('hidden-force');
                 } else {
-                   submitAllBtn.classList.add('hidden-force'); // Hide submit otherwise
-                   nextBtn.classList.remove('hidden-force'); // Ensure Next is visible
-                   nextBtn.disabled = !allFilled;
+                    prevBtn.classList.remove('hidden-force');
+                    prevBtn.disabled = false;
+                }
+
+                // Next Button
+                if (isLastProblem) {
+                   nextBtn.classList.add('hidden-force');
+                } else {
+                   nextBtn.classList.remove('hidden-force');
+                   // Keep Next disabled until all filled
+                   nextBtn.disabled = !allFilled; 
+                }
+
+                // Submit Button Logic
+                // Show Submit if not locally submitted yet.
+                // It should be disabled if not all filled.
+                if (!currentProblemSubmitted) {
+                    submitAllBtn.classList.remove('hidden-force');
+                    submitAllBtn.disabled = !allFilled;
+                } else {
+                    // If locally submitted:
+                    // If last problem -> we just keep it as is, user will click submit again? 
+                    // Actually request says "submit button at each stage which tells them what answers they have gotten wrong".
+                    // Once they submit locally, they see red blocks.
+                    // They shouldn't be able to edit.
+                    // The "Submit" button should probably disappear or be disabled after local submission?
+                    // Request says "have that same button... for all 10 problems".
+                    // If they click submit, they see errors.
+                    // For problems 1-9, this effectively acts as a "Check Answers" button.
+                    // Once clicked, they see the result. The prompt implies they move on after.
+                    // So hide submit after checking?
+                    submitAllBtn.classList.add('hidden-force');
                 }
             }
 
             // SUBMIT LOGIC
             submitAllBtn.addEventListener('click', () => {
-                isSubmitted = true;
-                saveState();
+                // 1. Mark current problem as submitted locally
+                currentProblemSubmitted = true;
                 
-                // Switch Screens
-                gameContainer.classList.add('hidden-force');
-                thankYouScreen.classList.remove('hidden-force');
+                // 2. Re-render to show Red/Green feedback immediately
+                // (init calls renderTable, which calls createInteractiveCell, which uses currentProblemSubmitted)
+                // We also want to update buttons via checkCompletion
                 
-                // Re-trigger scale to fit the Thank You screen
-                setTimeout(fitToScreen, 50);
+                // Force re-render of table to apply disabled/color styles
+                init(); 
+
+                // 3. Check if this is the last problem
+                const isLastProblem = (currentProblemIndex === problemSet.length - 1);
+
+                if (isLastProblem) {
+                    // Only on the last problem do we do the full "Global Submit" flow
+                    isSubmitted = true;
+                    saveState();
+                    
+                    // Switch Screens
+                    gameContainer.classList.add('hidden-force');
+                    thankYouScreen.classList.remove('hidden-force');
+                    
+                    // Re-trigger scale to fit the Thank You screen
+                    setTimeout(fitToScreen, 50);
+                } else {
+                    // For problems 1-9, we stay on the same page but show feedback.
+                    // User can then click Next.
+                    // We don't toggle isSubmitted global flag.
+                    saveState(); 
+                }
             });
 
             function updateGlobalScore() {
@@ -973,6 +1055,9 @@
                     if (savedState.isSubmitted) {
                         console.log("Game was submitted.");
                         isSubmitted = true;
+                    }
+                    if (savedState.problemSubmissionStatus) {
+                        problemSubmissionStatus = savedState.problemSubmissionStatus;
                     }
                 } else {
                     console.log("No saved state found. Starting fresh.");
