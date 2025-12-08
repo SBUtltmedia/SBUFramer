@@ -668,7 +668,8 @@
                 if (isSubmitted) {
                     currentProblemSubmitted = true; 
                 } else {
-                    currentProblemSubmitted = problemSubmissionStatus[currentProblemIndex] || false;
+                    // Check if this specific problem was previously submitted
+                    currentProblemSubmitted = (problemSubmissionStatus && problemSubmissionStatus[currentProblemIndex]) || false;
                 }
 
                 const MAX_INTERACTIVE_COLS_ONE_TABLE = 20; 
@@ -901,8 +902,8 @@
                    nextBtn.classList.add('hidden-force');
                 } else {
                    nextBtn.classList.remove('hidden-force');
-                   // Keep Next disabled until all filled
-                   nextBtn.disabled = !allFilled; 
+                   // Next button enabled only if ALL cells filled AND current problem submitted
+                   nextBtn.disabled = !(allFilled && currentProblemSubmitted);
                 }
 
                 // Submit Button Logic
@@ -913,16 +914,7 @@
                     submitAllBtn.disabled = !allFilled;
                 } else {
                     // If locally submitted:
-                    // If last problem -> we just keep it as is, user will click submit again? 
-                    // Actually request says "submit button at each stage which tells them what answers they have gotten wrong".
-                    // Once they submit locally, they see red blocks.
-                    // They shouldn't be able to edit.
-                    // The "Submit" button should probably disappear or be disabled after local submission?
-                    // Request says "have that same button... for all 10 problems".
-                    // If they click submit, they see errors.
-                    // For problems 1-9, this effectively acts as a "Check Answers" button.
-                    // Once clicked, they see the result. The prompt implies they move on after.
-                    // So hide submit after checking?
+                    // Hide the submit button as the user has already checked their answers.
                     submitAllBtn.classList.add('hidden-force');
                 }
             }
@@ -931,6 +923,10 @@
             submitAllBtn.addEventListener('click', () => {
                 // 1. Mark current problem as submitted locally
                 currentProblemSubmitted = true;
+                
+                // Update the status map immediately
+                if (!problemSubmissionStatus) problemSubmissionStatus = {};
+                problemSubmissionStatus[currentProblemIndex] = true;
                 
                 // 2. Re-render to show Red/Green feedback immediately
                 // (init calls renderTable, which calls createInteractiveCell, which uses currentProblemSubmitted)
