@@ -509,16 +509,16 @@
         document.addEventListener('DOMContentLoaded', () => {
             
             const problemSet = [
-                '~ p v ~ q',                            // 1.
-                '(q -> ~ p) ^ (p -> q)',                  // 2.
-                'p -> ~ q',                             // 3.
-                '~ p ^ p',                              // 4.
-                '~ p -> ~ ~ q',                         // 5.
-                'q -> ~ ~ p',                           // 6.
-                '(p -> ~ q) v (p -> q)',                // 7.
-                '~ p v q',                            // 8.
-                '((~ p -> q) v (~ p -> q)) -> q',        // 9.
-                '(~ p -> q) -> ((~ p -> q) v (p -> ~ q))' // 10.
+                // '~ p v ~ q',                            // 1.
+                '~ p v q',                            // 2.
+                // 'p -> ~ q',                             // 3.
+                // '~ p ^ p',                              // 4.
+                // '~ p -> ~ ~ q',                         // 5.
+                // 'q -> ~ ~ p',                           // 6.
+                // '(p -> ~ q) v (p -> q)',                // 7.
+                '(q -> ~ p) ^ (p -> q)',                  // 8.
+                // '((~ p -> q) v (~ p -> q)) -> q',        // 9.
+                // '(~ p -> q) -> ((~ p -> q) v (p -> ~ q))' // 10.
             ];
 
             const pValues = [true, true, false, false];
@@ -958,36 +958,29 @@
             });
 
             function updateGlobalScore() {
-                // Calculate score based on ALL problems (assuming solutions are consistent)
-                // Note: We need solutions for all problems to be accurate. 
-                // In this simple app, we can calculate them on the fly if needed, 
-                // but let's stick to checking what we have in globalSolutions.
+                // Grading Logic: "All or Nothing" per table.
+                // Each table is worth 2 points. Total max score = Total Problems * 2.
                 
-                let totalAttemptedCells = 0;
-                let totalCorrectCells = 0;
-                let totalPossibleCells = 0;
+                let totalCorrectProblems = 0;
+                const pointsPerProblem = 2;
+                const totalProblems = problemSet.length;
+                const maxScore = totalProblems * pointsPerProblem;
 
                 // Iterate through all problems in problemSet to get true score
                 problemSet.forEach((wff, pIdx) => {
-                    // Calculate solution for this problem on demand if missing (for robust score)
-                    // But to keep it simple and performant, we use what's loaded or visited.
-                    // For "Review Mode" to be accurate, we really need to check everything.
-                    // Let's rely on globalUserState.
-                    
                     const uState = globalUserState[pIdx];
+                    
                     if (uState) {
                          // We need solution for this specific pIdx. 
-                         // If user skipped around, it might be in globalSolutions.
-                         // If not, we must calc it.
                          let sol = globalSolutions[pIdx];
                          if (!sol) {
-                             // Calc temporarily
+                             // Calc temporarily if not already cached
                              const tempNames = parseConstituents(wff).filter(n => n !== 'p' && n !== 'q');
-                             // We need to set pValues/qValues logic inside evaluateWFF or make it pure.
-                             // evaluateWFF uses global pValues. Safe.
-                             // calculateSolutions uses global pValues. Safe.
                              sol = calculateSolutions(tempNames);
                          }
+
+                         let isTableCorrect = true;
+                         let hasAnyNull = false;
 
                          Object.keys(uState).forEach(colName => {
                             const userCol = uState[colName];
@@ -995,32 +988,36 @@
                             
                             if (solCol) {
                                 userCol.forEach((val, idx) => {
-                                    totalPossibleCells++;
-                                    if (val !== null) {
-                                        totalAttemptedCells++;
-                                        if (val === solCol[idx]) {
-                                            totalCorrectCells++;
-                                        }
+                                    if (val === null) {
+                                        hasAnyNull = true;
+                                        isTableCorrect = false;
+                                    } else if (val !== solCol[idx]) {
+                                        isTableCorrect = false;
                                     }
                                 });
                             }
                         });
+                        
+                        // Only award points if the ENTIRE table is filled and correct
+                        if (!hasAnyNull && isTableCorrect) {
+                            totalCorrectProblems++;
+                        }
                     }
                 });
 
                 let pct = 0;
                 let normalizedScore = 0;
+                let currentScore = totalCorrectProblems * pointsPerProblem;
 
-                // If in review mode, we base score on total correctness vs total possible
-                // But typically user wants score based on what they filled.
-                // Let's stick to current logic: correct / attempted.
-                if (totalAttemptedCells > 0) {
-                    pct = Math.round((totalCorrectCells / totalAttemptedCells) * 100);
-                    normalizedScore = totalCorrectCells / totalAttemptedCells;
+                if (totalProblems > 0) {
+                    pct = Math.round((currentScore / maxScore) * 100);
+                    normalizedScore = currentScore / maxScore;
                 }
                 
                 scoreText.textContent = `${pct}%`;
-                globalScoreContainer.innerHTML = `Global Score: <span class="text-cyan-400 font-bold font-mono">${pct}%</span> <span class="text-sm text-slate-500 ml-2 font-mono">(${totalCorrectCells}/${totalAttemptedCells})</span>`;
+                // Display raw score (X/Y points) optionally, or just keep percentage
+                // keeping percentage format as per original request but calculation logic changed
+                globalScoreContainer.innerHTML = `Global Score: <span class="text-cyan-400 font-bold font-mono">${pct}%</span> <span class="text-sm text-slate-500 ml-2 font-mono">(${currentScore}/${maxScore} pts)</span>`;
 
                 CanvasGame.notifyParent('score_update', { score: normalizedScore });
             }
