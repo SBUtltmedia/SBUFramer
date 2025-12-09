@@ -312,9 +312,9 @@
             <p class="text-slate-300 text-3xl mb-10">
                 You have completed the test.
             </p>
-            <p class="text-slate-500 text-lg">
-                Refresh the page to see your results.
-            </p>
+            <button id="refresh-results-btn" class="nav-btn rounded-xl text-slate-200 flex items-center justify-center gap-3 mt-6">
+                View the Results
+            </button>
         </div>
 
         <!-- Main Game Container -->
@@ -516,6 +516,7 @@
                 // '~ p -> ~ ~ q',                         // 5.
                 // 'q -> ~ ~ p',                           // 6.
                 // '(p -> ~ q) v (p -> q)',                // 7.
+                // '~ p v q',                            // 2.
                 '(q -> ~ p) ^ (p -> q)',                  // 8.
                 // '((~ p -> q) v (~ p -> q)) -> q',        // 9.
                 // '(~ p -> q) -> ((~ p -> q) v (p -> ~ q))' // 10.
@@ -949,6 +950,11 @@
                     
                     // Re-trigger scale to fit the Thank You screen
                     setTimeout(fitToScreen, 50);
+
+                    // Add event listener for the new refresh button
+                    document.getElementById('refresh-results-btn').addEventListener('click', () => {
+                        location.reload();
+                    });
                 } else {
                     // For problems 1-9, we stay on the same page but show feedback.
                     // User can then click Next.
