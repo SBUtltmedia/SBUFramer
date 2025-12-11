@@ -1010,7 +1010,7 @@
             }
 
             // SUBMIT LOGIC
-            submitAllBtn.addEventListener('click', () => {
+            submitAllBtn.addEventListener('click', async () => {
                 // 1. Mark current problem as submitted locally
                 currentProblemSubmitted = true;
                 
@@ -1018,6 +1018,9 @@
                 problemSubmissionStatus[currentProblemIndex] = true;
                 
                 const isCorrect = checkCurrentProblemCorrectness();
+                
+                // 2. Re-render
+                await init();
 
                 if (isPracticeMode) {
                     if (isCorrect) {
@@ -1032,9 +1035,6 @@
                          hasFailedPracticeAttempt[currentProblemIndex] = true;
                     }
                 }
-                
-                // 2. Re-render
-                init(); 
 
                 // 3. Check if this is the last problem
                 const isLastProblem = (currentProblemIndex === problemSet.length - 1);
