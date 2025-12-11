@@ -317,6 +317,29 @@
             </button>
         </div>
 
+        <!-- PRACTICE SUCCESS MODAL -->
+        <div id="practice-success-modal" class="hidden-force absolute inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm rounded-3xl">
+             <div class="relative flex flex-col items-center justify-center p-16 bg-slate-900/95 backdrop-blur-xl border border-emerald-500/30 rounded-3xl shadow-[0_0_60px_rgba(16,185,129,0.2)] min-w-[600px]">
+                <button id="close-practice-modal" class="absolute top-6 right-6 text-slate-400 hover:text-white hover:bg-red-500/20 rounded-full p-2 transition-all">
+                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+                <h2 class="text-8xl font-extrabold text-emerald-400 drop-shadow-[0_0_25px_rgba(52,211,153,0.6)] mb-6">Yay!</h2>
+                <p class="text-5xl text-slate-100 font-bold tracking-wide">Correct.</p>
+            </div>
+        </div>
+
+        <!-- PRACTICE INCORRECT MODAL -->
+        <div id="practice-incorrect-modal" class="hidden-force absolute inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm rounded-3xl">
+             <div class="relative flex flex-col items-center justify-center p-16 bg-slate-900/95 backdrop-blur-xl border border-rose-500/30 rounded-3xl shadow-[0_0_60px_rgba(244,63,94,0.2)] min-w-[600px]">
+                <button id="close-incorrect-modal" class="absolute top-6 right-6 text-slate-400 hover:text-white hover:bg-rose-500/20 rounded-full p-2 transition-all">
+                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+                <h2 class="text-8xl font-extrabold text-rose-400 drop-shadow-[0_0_25px_rgba(251,113,133,0.6)] mb-6">Oops!</h2>
+                <p class="text-5xl text-slate-100 font-bold tracking-wide">Incorrect.</p>
+                <p class="text-2xl text-slate-300 mt-4">Check your answers.</p>
+            </div>
+        </div>
+
         <!-- Main Game Container -->
         <div id="game-container" class="glass-panel rounded-3xl p-10 shadow-2xl relative">
             
@@ -372,10 +395,6 @@
         
             <!-- WFF Display -->
             <div class="flex justify-center mb-8 shrink-0 relative">
-                <!-- YAY MESSAGE -->
-                <div id="yay-message" class="absolute -top-24 left-1/2 -translate-x-1/2 text-6xl font-extrabold text-emerald-400 drop-shadow-[0_0_20px_rgba(52,211,153,1)] hidden-force z-50 pointer-events-none select-none">
-                    Yay!
-                </div>
                 <div id="wff-display" class="formula-box px-10 py-5 rounded-2xl text-4xl text-cyan-300 tracking-wide text-center w-full md:w-auto shadow-2xl uppercase">                    <!-- WFF inserted by JS -->
                 </div>
             </div>
@@ -541,8 +560,8 @@
                 // '~ p -> ~ ~ q',                         // 5.
                 // 'q -> ~ ~ p',                           // 6.
                 // '(p -> ~ q) v (p -> q)',                // 7.
-                // '~ p v q',                            // 2.
-                '(q -> ~ p) ^ (p -> q)',                  // 8.
+                '~ p v q',                            // 2.
+                // '(q -> ~ p) ^ (p -> q)',                  // 8.
                 // '((~ p -> q) v (~ p -> q)) -> q',        // 9.
                 // '(~ p -> q) -> ((~ p -> q) v (p -> ~ q))' // 10.
             ];
@@ -577,7 +596,24 @@
             const header2 = document.getElementById('table-header-2');
             const body2 = document.getElementById('table-body-2');
             const wffDisplay = document.getElementById('wff-display');
-            const yayMessage = document.getElementById('yay-message');
+            const practiceSuccessModal = document.getElementById('practice-success-modal');
+            const closePracticeModalBtn = document.getElementById('close-practice-modal');
+            
+            if (closePracticeModalBtn) {
+                closePracticeModalBtn.addEventListener('click', () => {
+                    practiceSuccessModal.classList.add('hidden-force');
+                });
+            }
+
+            const practiceIncorrectModal = document.getElementById('practice-incorrect-modal');
+            const closeIncorrectModalBtn = document.getElementById('close-incorrect-modal');
+
+            if (closeIncorrectModalBtn) {
+                closeIncorrectModalBtn.addEventListener('click', () => {
+                    practiceIncorrectModal.classList.add('hidden-force');
+                });
+            }
+
             const prevBtn = document.getElementById('prev-btn');
             const nextBtn = document.getElementById('next-btn');
             const submitAllBtn = document.getElementById('submit-all-btn'); // NEW BTN
@@ -668,7 +704,8 @@
                 progressBarFill.style.width = `${progressPct}%`;
 
                 // Hide Yay message on problem change
-                yayMessage.classList.add('hidden-force');
+                if (practiceSuccessModal) practiceSuccessModal.classList.add('hidden-force');
+                if (practiceIncorrectModal) practiceIncorrectModal.classList.add('hidden-force');
 
 
                 prevBtn.disabled = (problemNum === 1);
@@ -869,8 +906,12 @@
             function handleCellClick(e) {
                 if ((isSubmitted || currentProblemSubmitted) && !isPracticeMode) return; 
 
-                // In Practice Mode, we do NOT reset currentProblemSubmitted on click.
-                // This allows "Live Editing" of Red/Green cells.
+                // In Practice Mode, if we click a cell, we are editing.
+                // We must INVALIDATE the submission so the user has to click Submit again.
+                if (isPracticeMode) {
+                    currentProblemSubmitted = false;
+                    problemSubmissionStatus[currentProblemIndex] = false;
+                }
 
                 const cell = e.currentTarget; 
                 const connectiveName = cell.dataset.connective;
@@ -894,22 +935,9 @@
                 void span.offsetWidth; // trigger reflow
                 span.classList.add('animate-pop');
 
-                // If we are in "Feedback Mode" (currentProblemSubmitted is true), 
-                // the cell color should update based on correctness immediately?
-                // Simple approach: Apply the 'standard' styling locally, 
-                // but if currentProblemSubmitted is true, we should check correctness.
-                
-                if (isPracticeMode && currentProblemSubmitted) {
-                     const correctValue = solutions[connectiveName][rowIndex];
-                     const isCorrect = (newValue === correctValue);
-                     if (isCorrect) {
-                         cell.className = (newValue ? 'val-true' : 'val-false') + ' interactive-cell cursor-pointer';
-                     } else {
-                         cell.className = 'val-error val-error-cell interactive-cell cursor-pointer';
-                     }
-                } else {
-                     cell.className = (newValue ? 'val-true' : 'val-false') + ' interactive-cell';
-                }
+                // Always apply standard styling on click. 
+                // Validation (Red/Green) only happens on Submit (via init() re-render).
+                cell.className = (newValue ? 'val-true' : 'val-false') + ' interactive-cell cursor-pointer';
                 
                 checkCompletion();
                 updateGlobalScore();
@@ -1024,14 +1052,18 @@
 
                 if (isPracticeMode) {
                     if (isCorrect) {
-                        // Only show Yay if they haven't failed this problem before
+                        // Only show Yay modal if they haven't failed this problem before
                         if (!hasFailedPracticeAttempt[currentProblemIndex]) {
-                            yayMessage.classList.remove('hidden-force');
+                            if (practiceSuccessModal) practiceSuccessModal.classList.remove('hidden-force');
                         } else {
-                            yayMessage.classList.add('hidden-force');
+                            if (practiceSuccessModal) practiceSuccessModal.classList.add('hidden-force');
                         }
+                        // Ensure incorrect modal is hidden if correct
+                        if (practiceIncorrectModal) practiceIncorrectModal.classList.add('hidden-force');
                     } else {
-                         yayMessage.classList.add('hidden-force');
+                         // Submission is incorrect
+                         if (practiceSuccessModal) practiceSuccessModal.classList.add('hidden-force');
+                         if (practiceIncorrectModal) practiceIncorrectModal.classList.remove('hidden-force');
                          hasFailedPracticeAttempt[currentProblemIndex] = true;
                     }
                 }
@@ -1044,20 +1076,24 @@
                     let shouldFinish = false;
                     
                     if (isPracticeMode) {
-                        if (isCorrect) shouldFinish = true;
+                        if (isCorrect) {
+                            // Practice Mode End:
+                            // Just save state. The submit button will be hidden by checkCompletion/init.
+                            // We do NOT show the Thank You screen.
+                            // We might want to send a completion score if needed.
+                            CanvasGame.notifyParent('score_update', { score: 1 });
+                            saveState();
+                            return; 
+                        }
                     } else {
+                        // Assessment Mode: Always finish on last submit
                         shouldFinish = true;
                     }
 
                     if (shouldFinish) {
                         isSubmitted = true;
                         
-                        // For practice mode, we might want to send a completion score (100%)
-                        if (isPracticeMode) {
-                             CanvasGame.notifyParent('score_update', { score: 1 });
-                        }
-                        
-                        saveState(); // Will respect !isPracticeMode internally
+                        saveState(); 
                         
                         gameContainer.classList.add('hidden-force');
                         thankYouScreen.classList.remove('hidden-force');
