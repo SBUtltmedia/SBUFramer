@@ -133,20 +133,63 @@
             box-shadow: 0 0 10px rgba(251, 113, 133, 0.1);
         }
 
-        /* NEW: ERROR STYLE for Review Mode */
-        .val-error .cell-content {
-            background-color: rgba(220, 38, 38, 0.25); 
-            color: #ffffff; 
-            border: 2px solid #ef4444;
-            text-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
-            box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
-            transform: scale(1.05);
-        }
-        /* Override base TD for error to make it pop */
-        .truth-table td.val-error-cell {
-            border-color: #ef4444;
-            background-color: rgba(69, 10, 10, 0.3);
-        }
+                /* NEW: ERROR STYLE for Review Mode - ROBUST PATTERN */
+
+                .val-error .cell-content {
+
+                    /* Striped Warning Pattern */
+
+                    background-color: rgba(220, 38, 38, 0.2); 
+
+                    background-image: repeating-linear-gradient(
+
+                        45deg,
+
+                        rgba(220, 38, 38, 0.2),
+
+                        rgba(220, 38, 38, 0.2) 10px,
+
+                        rgba(220, 38, 38, 0.4) 10px,
+
+                        rgba(220, 38, 38, 0.4) 20px
+
+                    );
+
+                    color: #ffffff; 
+
+                    
+
+                    /* Distinct Border */
+
+                    border: 3px dashed #f87171; /* Lighter red dash */
+
+                    
+
+                    /* Inner Glow for depth */
+
+                    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.6), 0 0 10px rgba(239, 68, 68, 0.4);
+
+                    
+
+                    transform: scale(1.05);
+
+                    font-weight: 900; /* Extra bold */
+
+                }
+
+                
+
+                /* Override base TD */
+
+                .truth-table td.val-error-cell {
+
+                    border-color: #ef4444;
+
+                    background-color: transparent; 
+
+                    z-index: 50;
+
+                }
 
         .val-null .cell-content {
             background-color: rgba(30, 41, 59, 0.5); 
@@ -553,17 +596,17 @@
             }
 
             const problemSet = [
-                // '~ p v ~ q',                            // 1.
+                '~ p v ~ q',                            // 1.
                 '~ p v q',                            // 2.
-                // 'p -> ~ q',                             // 3.
-                // '~ p ^ p',                              // 4.
-                // '~ p -> ~ ~ q',                         // 5.
-                // 'q -> ~ ~ p',                           // 6.
-                // '(p -> ~ q) v (p -> q)',                // 7.
-                '~ p v q',                            // 2.
-                // '(q -> ~ p) ^ (p -> q)',                  // 8.
-                // '((~ p -> q) v (~ p -> q)) -> q',        // 9.
-                // '(~ p -> q) -> ((~ p -> q) v (p -> ~ q))' // 10.
+                'p -> ~ q',                             // 3.
+                '~ p ^ p',                              // 4.
+                '~ p -> ~ ~ q',                         // 5.
+                'q -> ~ ~ p',                           // 6.
+                '(p -> ~ q) v (p -> q)',                // 7.
+                // '~ p v q',                            // 2.
+                '(q -> ~ p) ^ (p -> q)',                  // 8.
+                '((~ p -> q) v (~ p -> q)) -> q',        // 9.
+                '(~ p -> q) -> ((~ p -> q) v (p -> ~ q))' // 10.
             ];
 
             const pValues = [true, true, false, false];
@@ -761,7 +804,7 @@
                 // Determine Mode
                 if (isSubmitted) {
                     // Review Mode Styling
-                    instructionText.innerHTML = '<span class="text-rose-400 font-bold">REVIEW MODE</span>: Incorrect answers are marked in <span class="font-bold text-rose-500">RED</span>.';
+                    instructionText.innerHTML = '<span class="text-rose-400 font-bold">REVIEW MODE</span>: Incorrect answers are outlined in dotted <span class="font-bold text-rose-500">RED</span>.';
                     globalScoreContainer.classList.remove('hidden-force');
                     
                     // scorePlaceholder removed, no action needed
